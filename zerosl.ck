@@ -32,6 +32,7 @@ public class ZeroSL
     [240,0,32,41,3,3,18,0,4,0,2,2,1,247] @=> int clear_msg[]; 
 
     sender.send(clear_msg,out);
+
   }
 
   fun void write(string s,int display,int position){
@@ -45,5 +46,13 @@ public class ZeroSL
     msg<<247; // finalize the message
     sender.send(msg,out);
   }
-
+ 
+  fun void setLedRing(int ring, int value){
+    176        => msg.data1;
+    112+ring   => msg.data2;
+    value      => msg.data3;
+    mout.send(msg);
+  }
 }
+
+  

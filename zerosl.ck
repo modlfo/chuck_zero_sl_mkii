@@ -9,29 +9,29 @@
 
 public class ZeroSL
 {
-  MidiOut out;
+  MidiOut mout;
   RawMidiSender sender;
 
   fun void open(int device)
   {
-    if( !out.open(device) ) me.exit();
-    <<< out.name(), "is open!" >>>;
+    if( !mout.open(device) ) me.exit();
+    <<< mout.name(), "is open!" >>>;
     // Send connect message
     [240,0,32,41,3,3,18,0,4,0,1,1,247] @=> int connect_msg[];
-    sender.send(connect_msg,out);
+    sender.send(connect_msg,mout);
   }
 
   fun void close()
   {
     [240,0,32,41,3,3,18,0,4,0,1,0,247] @=> int disconnect_msg[];
 
-    sender.send(disconnect_msg,out);
+    sender.send(disconnect_msg,mout);
   }
 
   fun void clear(){
     [240,0,32,41,3,3,18,0,4,0,2,2,1,247] @=> int clear_msg[];
 
-    sender.send(clear_msg,out);
+    sender.send(clear_msg,mout);
 
   }
 
@@ -44,15 +44,17 @@ public class ZeroSL
       msg<<s.charAt(i);
     }
     msg<<247; // finalize the message
-    sender.send(msg,out);
+    sender.send(msg,mout);
   }
 
   fun void setLedRing(int ring, int value){
+    MidiMsg msg;
     176        => msg.data1;
     112+ring   => msg.data2;
     value      => msg.data3;
     mout.send(msg);
   }
 }
+
 
 

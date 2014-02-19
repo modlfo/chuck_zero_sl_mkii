@@ -12,6 +12,13 @@ public class ZeroSL
   MidiOut mout;
   RawMidiSender sender;
 
+  // enumerations
+  0 => int LeftLCD;
+  1 => int RigthLCD;
+
+  1 => int Row1;
+  2 => int Row2;
+
   fun void open(int device)
   {
     if( !mout.open(device) ) me.exit();

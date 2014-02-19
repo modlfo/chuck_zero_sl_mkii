@@ -13,11 +13,11 @@ min.open(1);
 
 zero.clear();
 
-zero.writeLabel("LeftUp",0,1,2);
-zero.writeFloatLabel(1.564335632,0,2,2);
-zero.writeLabel("LeftDown",0,2,4);
-zero.writeLabel("RigthUp",1,1,6);
-zero.writeLabel("RigthDown",1,2,8);
+zero.writeFloatLabel(1.56433560876532, zero.LeftLCD, zero.Row2, 2);
+zero.writeLabel("LeftUp",    zero.LeftLCD, zero.Row1, 2);
+zero.writeLabel("LeftDown",  zero.LeftLCD, zero.Row2, 4);
+zero.writeLabel("RigthUp",   zero.RigthLCD,zero.Row1, 6);
+zero.writeLabel("RigthDown", zero.RigthLCD,zero.Row2, 8);
 
 0 => int i;
 0 => int j;

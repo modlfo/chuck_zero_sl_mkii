@@ -13,7 +13,11 @@ min.open(1);
 
 zero.clear();
 
-zero.write("Leonardo",1,0);
+zero.writeLabel("LeftUp",0,1,2);
+zero.writeFloatLabel(1.564335632,0,2,2);
+zero.writeLabel("LeftDown",0,2,4);
+zero.writeLabel("RigthUp",1,1,6);
+zero.writeLabel("RigthDown",1,2,8);
 
 0 => int i;
 0 => int j;

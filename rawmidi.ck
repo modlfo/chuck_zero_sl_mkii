@@ -13,9 +13,9 @@ public class RawMidiSender
       MidiMsg msg;
       0 => int i;
       0 => int byte_count;
-      
+
       data.size() => int s_length;
-      
+
       // Create groups of three bytes and send them in messages
       for(i;i<s_length;1 +=>i){
         if(byte_count==0)
@@ -30,7 +30,7 @@ public class RawMidiSender
           1 +=> byte_count;
         }
       }
-      
+
       // we have put a byte so we need to send two more
       if(byte_count==1){
         0 => msg.data2;

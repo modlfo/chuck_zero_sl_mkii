@@ -1,125 +1,49 @@
 // Chuck library for controlling the novation ZeroSL MKII 
 // Author: Leonardo Laguna Ruiz
 // e-mail: modlfo@gmail.com
-
+//  Notes: this library requires patching rtmidi.cpp the function
+//         RtMidiOut :: sendMessage
+//          if ( result < (int)nBytes && false) {
+//             errorString_ = "RtMidiOut::sendMessage: event parsing error!";
+    
 
 public class ZeroSL
 {
   MidiOut out;
-  MidiMsg msg;
-
-  // Send the first 3 messages of the header
-  // Note: data1 in the following byte needs to be 0
-  fun void sendHeader(){
-    240 => msg.data1;
-    0   => msg.data2;
-    32  => msg.data3;
-    out.send(msg);
-
-    41  => msg.data1;
-    3   => msg.data2;
-    3   => msg.data3;
-    out.send(msg);
-
-    18  => msg.data1;
-    0   => msg.data2;
-    4   => msg.data3;
-    out.send(msg);
-
-  }
+  RawMidiSender sender;
+    
   fun void open(int device)
   {
-    out.open(1);
-    // Send connect message
-    sendHeader();
-    0   => msg.data1;
-    1   => msg.data2;
-    1   => msg.data3;
-    out.send(msg);
-
-    247 => msg.data1;
-    0   => msg.data2; // the last two zeros are not part of the message
-    0   => msg.data3;
-    out.send(msg);
+    if( !out.open(device) ) me.exit();
+    <<< out.name(), "is open!" >>>;  
+    // Send connect message  
+    [240,0,32,41,3,3,18,0,4,0,1,1,247] @=> int connect_msg[];  
+    sender.send(connect_msg,out);
   }
   
   fun void close()
   {
-    sendHeader();
+    [240,0,32,41,3,3,18,0,4,0,1,0,247] @=> int disconnect_msg[]; 
 
-    0   => msg.data1;
-    1   => msg.data2;
-    0   => msg.data3;
-    out.send(msg);
-
-    247 => msg.data1;
-    0   => msg.data2; // the last two zeros are not part of the message
-    0   => msg.data3;
-    out.send(msg);
+    sender.send(disconnect_msg,out);
   }
   
   fun void clear(){
-    sendHeader();
+    [240,0,32,41,3,3,18,0,4,0,2,2,1,247] @=> int clear_msg[]; 
 
-    0   => msg.data1;
-    2   => msg.data2;
-    2   => msg.data3;
-    out.send(msg);
-
-    1   => msg.data1;
-    247 => msg.data2; 
-    0   => msg.data3;
-    out.send(msg);
+    sender.send(clear_msg,out);
   }
 
   fun void write(string s,int display,int position){
+    [240,0,32,41,3,3,18,0,4,0,2,1,position,display,4] @=> int msg[];
     0 => int i;
-    0 => int byte_count;
     s.length() => int s_length;
-    
-    sendHeader();
-
-    0   => msg.data1;
-    2   => msg.data2;
-    1   => msg.data3;
-    out.send(msg);
-
-    position   => msg.data1;
-    display    => msg.data2;
-    4   => msg.data3;
-    out.send(msg);
-
+    // append the characters to the array
     for(i;i<s_length;1 +=>i){
-      s.charAt(i) => int c;
-      if(byte_count==0)
-        c => msg.data1;
-      if(byte_count==1)
-        c => msg.data2;
-      if(byte_count==2){ // send every three bytes
-        c => msg.data3;
-        0 => byte_count;
-        out.send(msg);
-      } else {
-        1 +=> byte_count;
-      }
+      msg<<s.charAt(i);
     }
-    
-    if(byte_count==0){
-      247 => msg.data1;
-      0   => msg.data2;
-      0   => msg.data3;
-      out.send(msg);
-    }
-    if(byte_count==1){
-      247 => msg.data2;
-      0   => msg.data3;
-      out.send(msg);
-    }
-    if(byte_count==2){
-      247 => msg.data3;
-      out.send(msg);
-    }
+    msg<<247; // finalize the message
+    sender.send(msg,out);
   }
 
 }
-

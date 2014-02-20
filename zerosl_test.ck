@@ -3,13 +3,20 @@
 // Author: Leonardo Laguna Ruiz
 // e-mail: modlfo@gmail.com
 
-MidiIn min;
+
+class ControlHandler extends ZeroSLHandler
+{
+  fun void handle(int control,int value)
+  {
+  	<<< "control ",control," value ",value >>>;
+  }
+}
 
 ZeroSL zero;
+ControlHandler controlHandler;
+zero.setControlHandler(controlHandler);
 
-
-zero.open(1);
-min.open(1);
+zero.open(2);
 
 zero.clear();
 
@@ -29,7 +36,5 @@ for(j;j<8;1+=>j){
     0.1::second => now;
   }
 }
-
-
 
 zero.close();

@@ -10,7 +10,10 @@
 public class ZeroSL
 {
   MidiOut mout;
+  MidiIn min;
+  MidiMsg minMsg;
   RawMidiSender sender;
+  ZeroSLHandler controlHandler;
 
   // enumerations
   0 => int LeftLCD;
@@ -19,13 +22,36 @@ public class ZeroSL
   1 => int Row1;
   2 => int Row2;
 
+  fun void setControlHandler(ZeroSLHandler newHandler)
+  {
+    newHandler @=> controlHandler;
+  }
   fun void open(int device)
   {
     if( !mout.open(device) ) me.exit();
+    if( !min.open(device) ) me.exit();
     <<< mout.name(), "is open!" >>>;
     // Send connect message
     [240,0,32,41,3,3,18,0,4,0,1,1,247] @=> int connect_msg[];
     sender.send(connect_msg,mout);
+    // Starts the recieve shread
+    spork ~ waitForMidi();
+  }
+
+  fun void waitForMidi()
+  {
+    while(true)
+    {
+      min => now;
+      while (min.recv(minMsg))
+      {
+        //<<<minMsg.data1, minMsg.data2, minMsg.data3>>>;
+        if(minMsg.data1==176)
+        {
+          controlHandler.handle(minMsg.data2, minMsg.data3);
+        }
+      }
+    }
   }
 
   fun void close()
@@ -83,10 +109,20 @@ public class ZeroSL
     sender.send(msg,mout);
   }
 
-  fun void setLedRing(int ring, int value){
+  fun void setLedRing(int ring, int value)
+  {
     MidiMsg msg;
     176        => msg.data1;
     112+ring   => msg.data2;
+    value      => msg.data3;
+    mout.send(msg);
+  }
+
+  fun void setLedButton(int control,int value)
+  {
+    MidiMsg msg;
+    176        => msg.data1;
+    control    => msg.data2;
     value      => msg.data3;
     mout.send(msg);
   }

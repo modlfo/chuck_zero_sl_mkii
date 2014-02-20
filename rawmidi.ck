@@ -9,7 +9,7 @@
 public class RawMidiSender
 {
   // Sends an array of data to the given midi output
-  fun void send(int data[], MidiOut out){
+  fun static void send(int data[], MidiOut out){
       MidiMsg msg;
       0 => int i;
       0 => int byte_count;

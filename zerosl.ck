@@ -12,7 +12,6 @@ public class ZeroSL
   MidiOut mout;
   MidiIn min;
   MidiMsg minMsg;
-  RawMidiSender sender;
   ZeroSLHandler controlHandler;
 
   // enumerations
@@ -33,7 +32,7 @@ public class ZeroSL
     <<< mout.name(), "is open!" >>>;
     // Send connect message
     [240,0,32,41,3,3,18,0,4,0,1,1,247] @=> int connect_msg[];
-    sender.send(connect_msg,mout);
+    RawMidiSender.send(connect_msg,mout);
     // Starts the recieve shread
     spork ~ waitForMidi();
   }
@@ -58,13 +57,13 @@ public class ZeroSL
   {
     [240,0,32,41,3,3,18,0,4,0,1,0,247] @=> int disconnect_msg[];
 
-    sender.send(disconnect_msg,mout);
+    RawMidiSender.send(disconnect_msg,mout);
   }
 
   fun void clear(){
     [240,0,32,41,3,3,18,0,4,0,2,2,1,247] @=> int clear_msg[];
 
-    sender.send(clear_msg,mout);
+    RawMidiSender.send(clear_msg,mout);
 
   }
 
@@ -106,7 +105,7 @@ public class ZeroSL
       msg<<s.charAt(i);
     }
     msg<<247; // finalize the message
-    sender.send(msg,mout);
+    RawMidiSender.send(msg,mout);
   }
 
   fun void setLedRing(int ring, int value)

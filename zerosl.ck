@@ -11,7 +11,7 @@ public class ZeroSL
 {
   MidiOut mout;
   MidiIn min;
-  MidiMsg minMsg;
+
   ZeroSLHandler controlHandler;
 
   // enumerations
@@ -34,17 +34,20 @@ public class ZeroSL
     [240,0,32,41,3,3,18,0,4,0,1,1,247] @=> int connect_msg[];
     RawMidiSender.send(connect_msg,mout);
     // Starts the recieve shread
+    <<< "about to spork" >>>;
     spork ~ waitForMidi();
   }
 
   fun void waitForMidi()
   {
+    MidiMsg minMsg;
     while(true)
     {
+      //<<< "Waiting for midi" >>>;
       min => now;
       while (min.recv(minMsg))
       {
-        //<<<minMsg.data1, minMsg.data2, minMsg.data3>>>;
+        <<<minMsg.data1, minMsg.data2, minMsg.data3>>>;
         if(minMsg.data1==176)
         {
           controlHandler.handle(minMsg.data2, minMsg.data3);

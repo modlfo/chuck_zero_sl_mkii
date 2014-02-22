@@ -14,13 +14,6 @@ public class ZeroSL
 
   ZeroSLHandler controlHandler;
 
-  // enumerations
-  0 => int LeftLCD;
-  1 => int RigthLCD;
-
-  1 => int Row1;
-  2 => int Row2;
-
   fun void setControlHandler(ZeroSLHandler newHandler)
   {
     newHandler @=> controlHandler;
@@ -34,7 +27,7 @@ public class ZeroSL
     [240,0,32,41,3,3,18,0,4,0,1,1,247] @=> int connect_msg[];
     RawMidiSender.send(connect_msg,mout);
     // Starts the recieve shread
-    <<< "about to spork" >>>;
+    //<<< " About to spork the MIDI input function " >>>;
     spork ~ waitForMidi();
   }
 
@@ -47,7 +40,7 @@ public class ZeroSL
       min => now;
       while (min.recv(minMsg))
       {
-        <<<minMsg.data1, minMsg.data2, minMsg.data3>>>;
+        //<<<minMsg.data1, minMsg.data2, minMsg.data3>>>;
         if(minMsg.data1==176)
         {
           controlHandler.handle(minMsg.data2, minMsg.data3);
@@ -59,14 +52,23 @@ public class ZeroSL
   fun void close()
   {
     [240,0,32,41,3,3,18,0,4,0,1,0,247] @=> int disconnect_msg[];
-
+    clear();
     RawMidiSender.send(disconnect_msg,mout);
   }
 
   fun void clear(){
+    MidiMsg msg;
     [240,0,32,41,3,3,18,0,4,0,2,2,1,247] @=> int clear_msg[];
 
     RawMidiSender.send(clear_msg,mout);
+
+    for(0 => int i; i<8; 1+=>i){
+      setLedRing(i,0);
+      setLedButton(ZeroSLEnum.LeftUpButton+i,0);
+      setLedButton(ZeroSLEnum.LeftDownButton+i,0);
+      setLedButton(ZeroSLEnum.RightUpButton+i,0);
+      setLedButton(ZeroSLEnum.RightDownButton+i,0);
+    }
 
   }
 
@@ -87,7 +89,10 @@ public class ZeroSL
     if(s.length()>=8)
       s.substring(0, 8) => str;
     else
-      s => str;
+    {
+      8 - s.length() => int spaces;
+      appendRepeated(s," ",spaces) => str;
+    }
     write(str,display,(column-1)*9);
   }
 
@@ -97,6 +102,16 @@ public class ZeroSL
 
   fun void writeFloatLabel(float i, int left_right, int row, int column ){
     writeLabel(Std.ftoa(i,8),left_right,row,column);
+  }
+
+  fun string appendRepeated(string s, string sub, int n)
+  {
+    s => string tmp;
+    for(0 => int i; i<n; 1+=>i)
+    {
+      sub +=> tmp;
+    }
+    return tmp;
   }
 
   fun void write(string s, int display, int position){
@@ -117,6 +132,7 @@ public class ZeroSL
     176        => msg.data1;
     112+ring   => msg.data2;
     value      => msg.data3;
+    //<<<msg.data1, msg.data2, msg.data3>>>;
     mout.send(msg);
   }
 

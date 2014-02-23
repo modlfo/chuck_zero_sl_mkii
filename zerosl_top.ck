@@ -27,9 +27,10 @@ class Control
 
   Visualizer visualizers[];
 
-  fun void handle(int control, int value)
+  fun int handle(int control, int value)
   {
     <<< "Empty handler for control :", name >>>;
+    return 0;
   }
 
   fun void show()
@@ -105,7 +106,7 @@ class Items extends Visualizer
 
 class ToggleButton extends Control
 {
-  fun void handle(int control,int v)
+  fun int handle(int control,int v)
   {
     if(control == cc_value)
     {
@@ -122,14 +123,16 @@ class ToggleButton extends Control
             1.0 => raw_value;
           }
           show();
+          return 1;
        }
     }
+    return 0;
   }
 }
 
 class PushButton extends Control
 {
-  fun void handle(int control,int v)
+  fun int handle(int control,int v)
   {
     if(control == cc_value)
     {
@@ -144,7 +147,9 @@ class PushButton extends Control
         1.0 => raw_value;
       }
       show();
+      return 1;
     }
+    return 0;
   }
 }
 
@@ -152,7 +157,7 @@ class CountButton extends Control
 {
   0   => int min;
   127 => int max;
-  fun void handle(int control,int v)
+  fun int handle(int control,int v)
   {
     if(control == cc_value)
     {
@@ -163,8 +168,10 @@ class CountButton extends Control
           int_value-min $float => float delta;
           delta/range          => raw_value;
           show();
+          return 1;
        }
     }
+    return 0;
   }
 }
 
@@ -172,7 +179,7 @@ class Knob extends Control
 {
   0   => int min;
   127 => int max;
-  fun void handle(int control,int v)
+  fun int handle(int control,int v)
   {
     if(control == cc_value)
     {
@@ -181,14 +188,16 @@ class Knob extends Control
       int_value-min $float => float delta;
       delta/range          => raw_value;
       show();
+      return 1;
     }
+    return 0;
   }
 }
 
 class Encoder extends Control
 {
   1.0 => float speed;
-  fun void handle(int control,int v)
+  fun int handle(int control,int v)
   {
     1.0 => float direction;
     if(control == cc_value)
@@ -206,7 +215,9 @@ class Encoder extends Control
         0.0 => raw_value;
       (127.0 * raw_value) $int => int_value;
       show();
+      return 1;
     }
+    return 0;
   }
 }
 
@@ -217,6 +228,7 @@ public class ZeroSLTop extends ZeroSLHandler
 {
   ZeroSL controller;
   Control controls[];
+  ZeroSLTopHandler controlHandler;
 
   fun void open(int device)
   {
@@ -242,17 +254,24 @@ public class ZeroSLTop extends ZeroSLHandler
   }
   /* Process the incoming midi input fromthe controller */
   fun void handle(int control,int value)
+  {
+    //<<< "control ",control," value ",value >>>;
+    if(controls!=null)
     {
-      //<<< "control ",control," value ",value >>>;
-      if(controls!=null)
+      controls.size() => int size;
+      for(0=>int i;i<size;1+=>i)
       {
-        controls.size() => int size;
-        for(0=>int i;i<size;1+=>i)
-        {
-          controls[i].handle(control,value);
+        if(controls[i].handle(control,value)!=0){
+          controlHandler.handle(controls[i].name,controls[i].raw_value,controls[i].int_value);
         }
       }
     }
+  }
+
+  fun void setControlHandler(ZeroSLTopHandler newHandler)
+  {
+    newHandler @=> controlHandler;
+  }
 
   /* Adds a toggle button with a Led visualizer */
   fun void addToggleLed(string name, int position)

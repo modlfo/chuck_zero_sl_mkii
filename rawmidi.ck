@@ -8,6 +8,32 @@
 
 public class RawMidiSender
 {
+  fun static void sendNoteOn(int pitch, int velocity,MidiOut out){
+    MidiMsg msg;
+    0x90     => msg.data1;
+    pitch    => msg.data2;
+    velocity => msg.data3;
+    //<<<msg.data1, msg.data2, msg.data3>>>;
+    out.send(msg);
+  }
+
+  fun static void sendNoteOff(int pitch, int velocity,MidiOut out){
+    MidiMsg msg;
+    0x80     => msg.data1;
+    pitch    => msg.data2;
+    velocity => msg.data3;
+    //<<<msg.data1, msg.data2, msg.data3>>>;
+    out.send(msg);
+  }
+
+  fun static void sendControl(int control, int value,MidiOut out){
+    MidiMsg msg;
+    0xB0    => msg.data1;
+    control => msg.data2;
+    value   => msg.data3;
+    //<<<msg.data1, msg.data2, msg.data3>>>;
+    out.send(msg);
+  }
   // Sends an array of data to the given midi output
   fun static void send(int data[], MidiOut out){
       MidiMsg msg;

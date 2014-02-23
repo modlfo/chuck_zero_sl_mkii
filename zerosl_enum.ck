@@ -12,7 +12,7 @@ public class ZeroSLEnum
 
   // Left or right LCD value
   static int LeftLCD;
-  static int RigthLCD;
+  static int RightLCD;
 
   // First or second row
   static int Row1;
@@ -30,7 +30,7 @@ public class ZeroSLEnum
 49 => ZeroSLEnum.RightDownButton;
 
 0 => ZeroSLEnum.LeftLCD;
-1 => ZeroSLEnum.RigthLCD;
+1 => ZeroSLEnum.RightLCD;
 
 1 => ZeroSLEnum.Row1;
 2 => ZeroSLEnum.Row2;

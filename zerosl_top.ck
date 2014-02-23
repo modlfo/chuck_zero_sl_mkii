@@ -156,7 +156,11 @@ class CountButton extends Control
     {
        if(v!=0)
        {
-          (int_value + 1)%128  => int_value;
+          int_value + 1 => int_value;
+          if(int_value>max)
+            min => int_value;
+          if(int_value<min)
+            max => int_value;
           max-min $float       => float range;
           int_value-min $float => float delta;
           delta/range          => raw_value;
@@ -304,6 +308,19 @@ public class ZeroSLTop extends ZeroSLHandler
     newHandler @=> controlHandler;
   }
 
+  /* Adds a push button with a Led visualizer */
+  fun void addPushLed(string name, int position)
+  {
+    PushButton push;
+    Led led;
+    position    => led.cc_value;
+    controller @=> led.controller;
+    name        => push.name;
+    position    => push.cc_value;
+    [led $ Visualizer]      @=> push.visualizers;
+    addControl(push);
+  }
+
   /* Adds a toggle button with a Led visualizer */
   fun void addToggleLed(string name, int position)
   {
@@ -391,6 +408,26 @@ public class ZeroSLTop extends ZeroSLHandler
     position    => encoder.cc_value;
     [i $ Visualizer, ring $ Visualizer] @=> encoder.visualizers;
     addControl(encoder);
+  }
+  /* Adds a list of items controlled by a button */
+  fun void addCounterItems(string name, int position, int lcd, int column, string items[])
+  {
+    CountButton counter;
+    Items i;
+    Led led;
+    position    => led.cc_value;
+    controller @=> led.controller;
+    lcd         => i.lcd;
+    column      => i.column;
+    name        => i.label;
+    items      @=> i.items;
+    controller @=> i.controller;
+    name        => counter.name;
+    0           => counter.min;
+    items.size()-1 => counter.max;
+    position    => counter.cc_value;
+    [i $ Visualizer, led $ Visualizer] @=> counter.visualizers;
+    addControl(counter);
   }
 
 }

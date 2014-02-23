@@ -59,9 +59,12 @@ class Numeric extends Visualizer
 {
   0      => int column;
   0      => int lcd;
+  0.0    => float min;
+  1.0    => float max;
   fun void update(float v,int i){
+    (max-min)*v+min => float val;
     controller.writeLabel(label,lcd,ZeroSLEnum.Row1,column);
-    controller.writeLabel(Std.ftoa(v,3),lcd,ZeroSLEnum.Row2,column);
+    controller.writeLabel(Std.ftoa(val,3),lcd,ZeroSLEnum.Row2,column);
   }
 }
 
@@ -78,19 +81,9 @@ class Items extends Visualizer
 {
   0  => int column;
   0  => int lcd;
-  0  => int fix_range;
   string items[];
-  fun void update(float v, int i){
-      0 => int index;
+  fun void update(float v, int index){
     if(items!=null){
-      if(fix_range!=0)
-      {
-        (((items.size()) $ float) * v) $ int => index;
-      }
-      else
-      {
-        i => index;
-      }
       if(index >= items.size())
         items.size()-1 => index;
       if(index < 0)
@@ -197,6 +190,8 @@ class Knob extends Control
 class Encoder extends Control
 {
   1.0 => float speed;
+  0   => int min;
+  127 => int max;
   fun int handle(int control,int v)
   {
     1.0 => float direction;
@@ -213,7 +208,11 @@ class Encoder extends Control
         1.0 => raw_value;
       if(raw_value<0.0)
         0.0 => raw_value;
-      (127.0 * raw_value) $int => int_value;
+      (((max - min) * raw_value) + min) $int => int_value;
+      if(int_value>max)
+        max => int_value;
+      if(int_value<min)
+        min => int_value;
       show();
       return 1;
     }
@@ -261,8 +260,40 @@ public class ZeroSLTop extends ZeroSLHandler
       controls.size() => int size;
       for(0=>int i;i<size;1+=>i)
       {
-        if(controls[i].handle(control,value)!=0){
-          controlHandler.handle(controls[i].name,controls[i].raw_value,controls[i].int_value);
+        if(controls[i].enabled!=0)
+          if(controls[i].handle(control,value)!=0){
+            controlHandler.handle(controls[i].name,controls[i].raw_value,controls[i].int_value);
+          }
+      }
+    }
+  }
+
+  fun void setControlValue(string name, float raw_value, int int_value)
+  {
+    if(controls!=null)
+    {
+      controls.size() => int size;
+      for(0=>int i;i<size;1+=>i)
+      {
+        if(controls[i].name==name){
+          raw_value => controls[i].raw_value;
+          int_value => controls[i].int_value;
+          controls[i].show();
+        }
+      }
+    }
+  }
+
+  fun void setControlEnable(string name, int on_off)
+  {
+    if(controls!=null)
+    {
+      controls.size() => int size;
+      for(0=>int i;i<size;1+=>i)
+      {
+        if(controls[i].name==name){
+          on_off => controls[i].enabled;
+          if(on_off!=0) controls[i].show();
         }
       }
     }
@@ -304,7 +335,7 @@ public class ZeroSLTop extends ZeroSLHandler
   }
 
   /* Adds an encoder with a numeric visualizer */
-  fun void addEncoderNumeric(string name, int position, int lcd, int column, float speed)
+  fun void addEncoderNumeric(string name, int position, int lcd, int column, float speed,float min, float max)
   {
     Encoder encoder;
     Numeric num;
@@ -314,6 +345,8 @@ public class ZeroSLTop extends ZeroSLHandler
     lcd        => num.lcd;
     column     => num.column;
     name       => num.label;
+    min        => num.min;
+    max        => num.max;
     controller @=> num.controller;
     name        => encoder.name;
     position    => encoder.cc_value;
@@ -323,13 +356,15 @@ public class ZeroSLTop extends ZeroSLHandler
   }
 
   /* Adds a knob with a numeric visualizer */
-  fun void addKnobNumeric(string name, int position, int lcd, int column)
+  fun void addKnobNumeric(string name, int position, int lcd, int column, float min, float max)
   {
     Knob knob;
     Numeric num;
     lcd        => num.lcd;
     column     => num.column;
     name       => num.label;
+    min        => num.min;
+    max        => num.max;
     controller @=> num.controller;
     name        => knob.name;
     position    => knob.cc_value;
@@ -348,9 +383,10 @@ public class ZeroSLTop extends ZeroSLHandler
     column      => i.column;
     name        => i.label;
     items      @=> i.items;
-    1           => i.fix_range;
     controller @=> i.controller;
     name        => encoder.name;
+    0           => encoder.min;
+    items.size() => encoder.max;
     speed       => encoder.speed;
     position    => encoder.cc_value;
     [i $ Visualizer, ring $ Visualizer] @=> encoder.visualizers;

@@ -91,7 +91,10 @@ public class ZeroSL
     else
     {
       8 - s.length() => int spaces;
-      appendRepeated(s," ",spaces) => str;
+      appendRepeated(""," ",spaces/2) => string pre_s;
+      pre_s+s => str;
+      8 - str.length() => spaces;
+      appendRepeated(str," ",spaces) => str;
     }
     write(str,display,(column-1)*9);
   }

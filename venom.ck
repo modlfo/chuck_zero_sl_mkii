@@ -61,7 +61,20 @@ public class Venom
 
   fun void setOcs1WaveShape(int val)
   {
-    RawMidiSender.sendControl(49,val,mout);
+    if(val!=0)
+    {
+      [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x19,0x00,val,0xF7] @=> int msg[];
+      RawMidiSender.send(msg,mout);
+      [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x18,0x00,0x01,0xF7] @=> msg;
+      RawMidiSender.send(msg,mout);
+    }
+    else
+    {
+      [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x19,0x7F,0x7F,0xF7] @=> int msg[];
+      RawMidiSender.send(msg,mout);
+      [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x18,0x00,0x00,0xF7] @=> msg;
+      RawMidiSender.send(msg,mout);
+    }
   }
 
   //------- Osc 2
@@ -181,21 +194,35 @@ public class Venom
   /// ---- Pitch
   fun void setGlide(int on_off)
   {
+    int msg[];
+
     if(on_off!=0)
     {
-      RawMidiSender.sendControl(65,75,mout);
+      [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x00,0x00,0x7F,0xF7] @=> msg;
     }
     else
     {
-      RawMidiSender.sendControl(65,31,mout);
+      [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x00,0x00,0x00,0xF7] @=> msg;
     }
+    RawMidiSender.send(msg,mout);
   }
   fun void setGlideRange(int val)
   {
-    RawMidiSender.sendControl(5,val,mout);
+    [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x01,0x00,val,0xF7] @=> int msg[];
+    RawMidiSender.send(msg,mout);
   }
   fun void setBendRange(int val)
   {
     RawMidiSender.sendControl(60,val,mout);
   }
+
+  ["HP Sine","PB Sine","RP Sine",
+               "SH Tri",   "MG Tri",   "RP Tri",
+   "PB Saw",   "SH Saw",   "MG Saw",   "OB Saw",   "JX Saw",   "RP Saw",   "MS Saw",
+   "PB Square","SH Square","MG Square","OB Square","JX Square","RP Square","MS Square",
+   "AL Pulse", "MG Pulse",
+   "MG Sync", "SH Sync","JH Sync",
+   "BitWave1","BitWave2","BitWave3",
+   "ALFMWave","DPXWave","RPFMWave","ALFMBass","ALFMQuack","ALFMWoody",
+   "ALFMScn", "ALFMOrg1","ALFMOrg2","ALFMInh","MGWNoise"] @=> static string WavesNoDrums[];
 }

@@ -13,10 +13,26 @@ class MiniVenom extends ZeroSLTopHandler
   Venom venom;
   ZeroSLTop zero;
   0  => int current_osc;
-  0  => int current_env;
+  0  => int env_lfo;
+  0  => int source_dest_amt;
+  0  => int selected_slot;
 
   ["-4","-3","-2","-1"," 0","+1","+2","+3","+4"] @=> string octaves[];
   ["Off","LP 12","BP 12","HP 12","LP 24","BP 24","HP 24"] @=> string filter_types[];
+  ["Mono","Poly"] @=> string voice_mode[];
+  ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22",
+   "23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43",
+   "44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64",
+   "65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85",
+   "86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105",
+   "106","107","108","109","110","1/32","1/16T","1/16","1/8T","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2",
+   "1/2D","W","WD","2Bar","3Bar","4Bar"] @=> string lfo_rates[];
+  ["Sine","Sine+","Triangle","Saw","Square","SH","Lin SH","Log SH","Exp Sqr","Log Sqr","Log Saw","Exp Saw"] @=> string lfo_waves[];
+  ["Off","Env1","Env2","Env1 B","Env2 B","LFO1 W B","LFO2 W B","LFO1 W U","LFO2 W U","LFO1 F B","LFO2 F B","LFO1 F U","LFO2 F U"] @=> string mod_sources[];
+  [0    ,1      ,2    ,4       ,5        ,7        ,8          ,10       ,11        ,13        ,14        ,16        ,17] @=> int mod_sources_values[];
+  ["Off","Cutoff","Pitch","Pitch1","Pitch2","Ampl","Resonace","WaveShape","LFO1Rate","LFO2Rate","Detune","Osc1Level","Osc2Level"] @=> string mod_dest[];
+  [0    ,1       ,2      ,3       ,4       ,6     ,7         ,11         ,12        ,13        ,14      ,15         ,16]  @=> int mod_dest_values[];
+  ["1","2","3","4","5","6"] @=> string mod_slots[];
 
   fun void open(int venom_device,int zerosl_device)
   {
@@ -40,6 +56,19 @@ class MiniVenom extends ZeroSLTopHandler
     venom.setEnv1Hold(0); // not using hold in envelopes
     venom.setEnv2Hold(0);
 
+    venom.setVoiceUnisonOnOff(0);
+    venom.setInsertFX(0); // bypass
+    venom.setAuxFX1Level(0); // no send 1
+    venom.setAuxFX2Level(0); // no send 2
+
+    venom.setLFO1Delay(0);  // basic LFO behavior
+    venom.setLFO1Attack(0);
+    venom.setLFO1Start(0);
+    venom.setLFO2Delay(0);
+    venom.setLFO2Attack(0);
+    venom.setLFO2Start(0);
+
+
     // Initialize the ZeroSl controls
 
     zero.addKnobNumeric("Mix 1-2",  ZeroSLEnum.Knobs+0, ZeroSLEnum.LeftLCD, 1, -1.0, 1.0);
@@ -48,12 +77,13 @@ class MiniVenom extends ZeroSLTopHandler
     zero.addKnobNumeric("Cutoff",   ZeroSLEnum.Knobs+3, ZeroSLEnum.LeftLCD, 4, 0.0,  1.0);
     zero.addKnobNumeric("Resonace", ZeroSLEnum.Knobs+4, ZeroSLEnum.LeftLCD, 5, 0.0,  1.0);
     zero.addKnobNumeric("Boost",    ZeroSLEnum.Knobs+5, ZeroSLEnum.LeftLCD, 6, 0.0,  1.0);
+    zero.addKnobNumericInt("ModSlot",     ZeroSLEnum.Knobs+7, ZeroSLEnum.LeftLCD, 8, 1,  6);
 
     zero.addEncoderItems("Osc1Wave", ZeroSLEnum.Encoders+0, ZeroSLEnum.LeftLCD, 1, 0.2, Venom.WavesNoDrums);
     zero.addEncoderItems("Osc1Oct",  ZeroSLEnum.Encoders+1, ZeroSLEnum.LeftLCD, 2, 1.0, octaves);
     zero.addEncoderNumeric("Osc1Fine", ZeroSLEnum.Encoders+2, ZeroSLEnum.LeftLCD, 3, 0.5, -50.0, 50.0);
 
-    zero.addCounterItems("FltType",ZeroSLEnum.LeftUpButton+4,ZeroSLEnum.LeftLCD,5,filter_types);
+    zero.addCounterItems("FltType",ZeroSLEnum.LeftUpButton+3,ZeroSLEnum.LeftLCD,4,filter_types);
 
     zero.addEncoderNumeric("Env1Atck", ZeroSLEnum.Encoders+3, ZeroSLEnum.LeftLCD, 4, 0.5, 0.0, 1.0);
     zero.addEncoderNumeric("Env1Dec", ZeroSLEnum.Encoders+4, ZeroSLEnum.LeftLCD, 5, 0.5, 0.0, 1.0);
@@ -65,25 +95,34 @@ class MiniVenom extends ZeroSLTopHandler
     zero.addEncoderNumeric("Env2Sus", ZeroSLEnum.Encoders+5, ZeroSLEnum.LeftLCD, 6, 0.5, 0.0, 1.0);
     zero.addEncoderNumeric("Env2Rel", ZeroSLEnum.Encoders+6, ZeroSLEnum.LeftLCD, 7, 0.5, 0.0, 1.0);
 
+    zero.addEncoderItems("Wave1", ZeroSLEnum.Encoders+3, ZeroSLEnum.LeftLCD, 4, 0.5, lfo_waves);
+    zero.addEncoderItems("Rate1", ZeroSLEnum.Encoders+4, ZeroSLEnum.LeftLCD, 5, 0.5, lfo_rates);
+    zero.addEncoderItems("Wave2", ZeroSLEnum.Encoders+5, ZeroSLEnum.LeftLCD, 6, 0.5, lfo_waves);
+    zero.addEncoderItems("Rate2", ZeroSLEnum.Encoders+6, ZeroSLEnum.LeftLCD, 7, 0.5, lfo_rates);
+
     zero.addEncoderItems("Osc2Wave", ZeroSLEnum.Encoders+0, ZeroSLEnum.LeftLCD, 1, 0.2, Venom.WavesNoDrums);
     zero.addEncoderItems("Osc2Oct",  ZeroSLEnum.Encoders+1, ZeroSLEnum.LeftLCD, 2, 1.0, octaves);
     zero.addEncoderNumeric("Osc2Fine", ZeroSLEnum.Encoders+2, ZeroSLEnum.LeftLCD, 3, 0.5, -50.0, 50.0);
 
+    zero.addCounterItems("Voice",ZeroSLEnum.LeftUpButton+2,ZeroSLEnum.LeftLCD,3,voice_mode);
 
-    zero.addToggleLed("Osc1Sel",ZeroSLEnum.LeftUpButton+0);
-    zero.addToggleLed("Osc2Sel",ZeroSLEnum.LeftDownButton+0);
+    zero.addToggleLed("Osc1Sel",ZeroSLEnum.LeftDownButton+0);
+    zero.addToggleLed("Osc2Sel",ZeroSLEnum.LeftDownButton+1);
 
-    zero.addToggleLed("Env1Sel",ZeroSLEnum.LeftUpButton+3);
-    zero.addToggleLed("Env2Sel",ZeroSLEnum.LeftDownButton+3);
+    zero.addToggleLed("Env1Sel",ZeroSLEnum.LeftDownButton+3);
+    zero.addToggleLed("Env2Sel",ZeroSLEnum.LeftDownButton+4);
+    zero.addToggleLed("LFOSel",ZeroSLEnum.LeftDownButton+5);
+
+    zero.addPushLed("ModSel",ZeroSLEnum.LeftUpButton+7);
 
 
     0  => current_osc; // Select the first oscillator as default
     zero.setControlValue("Osc1Sel",1.0,1);
     showOsc1Or2(); // Enable/dissable the controls for the oscillators
 
-    0 => current_env;
+    0 => env_lfo;
     zero.setControlValue("Env1Sel",1.0,1);
-    showEnv1Or2();
+    showEnv12OrLFO();
 
     zero.setControlHandler(this);
   }
@@ -109,23 +148,35 @@ class MiniVenom extends ZeroSLTopHandler
     }
   }
 
-  fun void showEnv1Or2()
+  fun void showEnv12OrLFO()
   {
     ["Env1Atck","Env1Dec","Env1Sus","Env1Rel"] @=> string env1Controls[];
     ["Env2Atck","Env2Dec","Env2Sus","Env2Rel"] @=> string env2Controls[];
-    if(current_env==0){
+    ["Wave1","Rate1","Wave2","Rate2"] @=> string lfoControls[];
+    if(env_lfo==0){
       for(0=>int i;i<env1Controls.size();1+=>i)
       {
         zero.setControlEnable(env1Controls[i],1);
         zero.setControlEnable(env2Controls[i],0);
+        zero.setControlEnable(lfoControls[i],0);
       }
     }
-    else
+    if(env_lfo==1)
     {
       for(0=>int i;i<env1Controls.size();1+=>i)
       {
         zero.setControlEnable(env1Controls[i],0);
         zero.setControlEnable(env2Controls[i],1);
+        zero.setControlEnable(lfoControls[i],0);
+      }
+    }
+    if(env_lfo==2)
+    {
+      for(0=>int i;i<env1Controls.size();1+=>i)
+      {
+        zero.setControlEnable(env1Controls[i],0);
+        zero.setControlEnable(env2Controls[i],0);
+        zero.setControlEnable(lfoControls[i],1);
       }
     }
   }
@@ -210,21 +261,36 @@ class MiniVenom extends ZeroSLTopHandler
     // Act as a radio button with Env1Sel and Env2Sel
     if(name=="Env1Sel")
     {
-      0 => current_env;
-      if(value!=0)
+      0 => env_lfo;
+      if(value!=0){
         zero.setControlValue("Env2Sel",0.0,0);
+        zero.setControlValue("LFOSel",0.0,0);
+      }
       else
         zero.setControlValue("Env1Sel",1.0,1);
-      showEnv1Or2();
+      showEnv12OrLFO();
     }
     if(name=="Env2Sel")
     {
-      1 => current_env;
-      if(value!=0)
+      1 => env_lfo;
+      if(value!=0){
         zero.setControlValue("Env1Sel",0.0,0);
+        zero.setControlValue("LFOSel",0.0,0);
+      }
       else
         zero.setControlValue("Env2Sel",1.0,1);
-      showEnv1Or2();
+      showEnv12OrLFO();
+    }
+    if(name=="LFOSel")
+    {
+      2 => env_lfo;
+      if(value!=0){
+        zero.setControlValue("Env1Sel",0.0,0);
+        zero.setControlValue("Env2Sel",0.0,0);
+      }
+      else
+        zero.setControlValue("LFOSel",1.0,1);
+      showEnv12OrLFO();
     }
 
     // Filter
@@ -282,6 +348,33 @@ class MiniVenom extends ZeroSLTopHandler
       venom.setEnv2Release(value);
     }
 
+    // Voice
+    if(name=="Voice")
+    {
+      venom.setVoiceMonoPoly(value);
+    }
+
+    if(name=="Wave1"){
+      venom.setLFO1Wave(value);
+    }
+    if(name=="Rate1"){
+      venom.setLFO1Rate(value);
+    }
+    if(name=="Wave2"){
+      venom.setLFO2Wave(value);
+    }
+    if(name=="Rate2"){
+      venom.setLFO2Rate(value);
+    }
+
+    if(name=="ModSlot"){
+      value => selected_slot;
+    }
+    if(name=="ModSel"){
+      if(value!=0){
+        (source_dest_amt+1)%3 => source_dest_amt;
+      }
+    }
   }
 }
 
@@ -292,7 +385,7 @@ MiniVenom miniVenom;
 
 
 
-miniVenom.open(3,2); // Venom is conneced to port 3 // ZeroSL is connected to port 2
+miniVenom.open(2,3); // Venom is conneced to port 3 // ZeroSL is connected to port 2
 
 
 for(0 => int i; i<80; 1+=>i)

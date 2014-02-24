@@ -68,6 +68,16 @@ class Numeric extends Visualizer
   }
 }
 
+class NumericInt extends Visualizer
+{
+  0      => int column;
+  0      => int lcd;
+  fun void update(float v,int i){
+    controller.writeLabel(label,lcd,ZeroSLEnum.Row1,column);
+    controller.writeLabel(Std.itoa(i),lcd,ZeroSLEnum.Row2,column);
+  }
+}
+
 class LedRing extends Visualizer
 {
   0      => int column;
@@ -184,6 +194,24 @@ class Knob extends Control
       max-min $float       => float range;
       int_value-min $float => float delta;
       delta/range          => raw_value;
+      show();
+      return 1;
+    }
+    return 0;
+  }
+}
+
+class KnobInt extends Control
+{
+  0   => int min;
+  127 => int max;
+  fun int handle(int control,int v)
+  {
+    if(control == cc_value)
+    {
+      (v $float) / 127.0 => float raw_value;
+      max-min $float       => float range;
+      ((raw_value * range) + min) $ int => int_value;
       show();
       return 1;
     }
@@ -388,6 +416,22 @@ public class ZeroSLTop extends ZeroSLHandler
     [num $ Visualizer]      @=> knob.visualizers;
     addControl(knob);
   }
+  /* Adds a knob with a numeric visualizer */
+  fun void addKnobNumericInt(string name, int position, int lcd, int column, int min, int max)
+  {
+    KnobInt knob;
+    NumericInt num;
+    lcd        => num.lcd;
+    column     => num.column;
+    name       => num.label;
+    min        => knob.min;
+    max        => knob.max;
+    controller @=> num.controller;
+    name        => knob.name;
+    position    => knob.cc_value;
+    [num $ Visualizer]      @=> knob.visualizers;
+    addControl(knob);
+  }
   /* Adds a list of items */
   fun void addEncoderItems(string name, int position, int lcd, int column,float speed, string items[])
   {
@@ -403,7 +447,7 @@ public class ZeroSLTop extends ZeroSLHandler
     controller @=> i.controller;
     name        => encoder.name;
     0           => encoder.min;
-    items.size() => encoder.max;
+    items.size()-1 => encoder.max;
     speed       => encoder.speed;
     position    => encoder.cc_value;
     [i $ Visualizer, ring $ Visualizer] @=> encoder.visualizers;

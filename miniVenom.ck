@@ -34,7 +34,7 @@ class MiniVenom extends ZeroSLTopHandler
   [0    ,1       ,2      ,3       ,4       ,6     ,7         ,11         ,12        ,13        ,14      ,15         ,16]  @=> int mod_dest_values[];
   ["1","2","3","4","5","6"] @=> string mod_slots[];
 
-  fun void open(int venom_device,int zerosl_device)
+  fun void open(string venom_device,string zerosl_device)
   {
     venom.open(venom_device);
     zero.open(zerosl_device);
@@ -385,20 +385,24 @@ MiniVenom miniVenom;
 
 
 
-miniVenom.open(2,3); // Venom is conneced to port 3 // ZeroSL is connected to port 2
+miniVenom.open("USB Uno MIDI Interface MIDI 1","ZeRO MkII MIDI 2"); // Venom is conneced to port 3 // ZeroSL is connected to port 2
 
 
-for(0 => int i; i<80; 1+=>i)
-{
-  RawMidiSender.sendNoteOn(40,100,miniVenom.venom.mout);
-  0.2::second => now;
-  RawMidiSender.sendNoteOff(40,100,miniVenom.venom.mout);
-  RawMidiSender.sendNoteOn(40+12,100,miniVenom.venom.mout);
-  0.2::second => now;
-  RawMidiSender.sendNoteOff(40+12,100,miniVenom.venom.mout);
-  RawMidiSender.sendNoteOn(40+24,100,miniVenom.venom.mout);
-  0.2::second => now;
-  RawMidiSender.sendNoteOff(40+24,100,miniVenom.venom.mout);
+//for(0 => int i; i<80; 1+=>i)
+//{
+//  RawMidiSender.sendNoteOn(40,100,miniVenom.venom.mout);
+//  0.2::second => now;
+//  RawMidiSender.sendNoteOff(40,100,miniVenom.venom.mout);
+//  RawMidiSender.sendNoteOn(40+12,100,miniVenom.venom.mout);
+//  0.2::second => now;
+//  RawMidiSender.sendNoteOff(40+12,100,miniVenom.venom.mout);
+//  RawMidiSender.sendNoteOn(40+24,100,miniVenom.venom.mout);
+//  0.2::second => now;
+//  RawMidiSender.sendNoteOff(40+24,100,miniVenom.venom.mout);
+//}
+
+while(true){
+  10::second => now;
 }
 
 miniVenom.close();

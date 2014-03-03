@@ -261,7 +261,7 @@ public class ZeroSLTop extends ZeroSLHandler
   Control controls[];
   ZeroSLTopHandler controlHandler;
 
-  fun void open(int device)
+  fun void open(string device)
   {
     controller.open(device);
     controller.setControlHandler(this);

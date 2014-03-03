@@ -4,7 +4,7 @@ public class Venom
 {
   MidiOut mout;
 
-  fun void open(int device)
+  fun void open(string device)
   {
     if( !mout.open(device) ) me.exit();
   }

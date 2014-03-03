@@ -18,7 +18,7 @@ public class ZeroSL
   {
     newHandler @=> controlHandler;
   }
-  fun void open(int device)
+  fun void open(string device)
   {
     if( !mout.open(device) ) me.exit();
     if( !min.open(device) ) me.exit();

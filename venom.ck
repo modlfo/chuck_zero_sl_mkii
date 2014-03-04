@@ -360,6 +360,12 @@ public class Venom
     RawMidiSender.send(msg,mout);
   }
 
+  fun void setDirectLevel(int val)
+  {
+    [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x75,0x00,val,0xF7] @=> int msg[];
+    RawMidiSender.send(msg,mout);
+  }
+
   // Aux FX
 
   fun void setAuxFX1Level(int val)

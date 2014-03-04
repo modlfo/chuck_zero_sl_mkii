@@ -9,7 +9,7 @@ class Visualizer
   "None" => string label;
   0.0    => float value;
 
-  ZeroSL controller;
+  ZeroSL @ controller;
 
   fun void update(float v,int i){
     <<< "Empty visualizer" >>>;

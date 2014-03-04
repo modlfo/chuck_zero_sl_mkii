@@ -32,13 +32,11 @@ class MiniVenom extends ZeroSLTopHandler
   [0    ,1      ,2    ,4       ,5        ,7        ,8          ,10       ,11        ,13        ,14        ,16        ,17] @=> int mod_sources_values[];
   ["Off","Cutoff","Pitch","Pitch1","Pitch2","Ampl","Resonace","WaveShape","LFO1Rate","LFO2Rate","Detune","Osc1Level","Osc2Level"] @=> string mod_dest[];
   [0    ,1       ,2      ,3       ,4       ,6     ,7         ,11         ,12        ,13        ,14      ,15         ,16]  @=> int mod_dest_values[];
-  ["1","2","3","4","5","6"] @=> string mod_slots[];
 
-  fun void open(string venom_device,string zerosl_device)
+
+  fun void setDefaults()
   {
-    venom.open(venom_device);
-    zero.open(zerosl_device);
-    // Set the defaults
+     // Set the defaults
     venom.setOscDrift(64); // medium drift to make it "more" analog
     venom.setOSCStartMod(0);
     venom.setOSCRingMod(0);
@@ -60,6 +58,7 @@ class MiniVenom extends ZeroSLTopHandler
     venom.setInsertFX(0); // bypass
     venom.setAuxFX1Level(0); // no send 1
     venom.setAuxFX2Level(0); // no send 2
+    venom.setDirectLevel(0x7F); // max direct level
 
     venom.setLFO1Delay(0);  // basic LFO behavior
     venom.setLFO1Attack(0);
@@ -67,9 +66,9 @@ class MiniVenom extends ZeroSLTopHandler
     venom.setLFO2Delay(0);
     venom.setLFO2Attack(0);
     venom.setLFO2Start(0);
+  }
 
-
-    // Initialize the ZeroSl controls
+  fun void addControls(){
 
     zero.addKnobNumeric("Mix 1-2",  ZeroSLEnum.Knobs+0, ZeroSLEnum.LeftLCD, 1, -1.0, 1.0);
     zero.addKnobNumeric("WaveShape",ZeroSLEnum.Knobs+1, ZeroSLEnum.LeftLCD, 2, 0.0,  1.0);
@@ -77,14 +76,33 @@ class MiniVenom extends ZeroSLTopHandler
     zero.addKnobNumeric("Cutoff",   ZeroSLEnum.Knobs+3, ZeroSLEnum.LeftLCD, 4, 0.0,  1.0);
     zero.addKnobNumeric("Resonace", ZeroSLEnum.Knobs+4, ZeroSLEnum.LeftLCD, 5, 0.0,  1.0);
     zero.addKnobNumeric("Boost",    ZeroSLEnum.Knobs+5, ZeroSLEnum.LeftLCD, 6, 0.0,  1.0);
-    zero.addKnobNumericInt("ModSlot",     ZeroSLEnum.Knobs+7, ZeroSLEnum.LeftLCD, 8, 1,  6);
 
-    zero.addEncoderItems("Osc1Wave", ZeroSLEnum.Encoders+0, ZeroSLEnum.LeftLCD, 1, 0.2, Venom.WavesNoDrums);
-    zero.addEncoderItems("Osc1Oct",  ZeroSLEnum.Encoders+1, ZeroSLEnum.LeftLCD, 2, 1.0, octaves);
-    zero.addEncoderNumeric("Osc1Fine", ZeroSLEnum.Encoders+2, ZeroSLEnum.LeftLCD, 3, 0.5, -50.0, 50.0);
+
+    // Modulation
+    zero.addEncoderItems("Source1",   ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_sources);
+    zero.addEncoderItems("Source2",   ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_sources);
+    zero.addEncoderItems("Source3",   ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_sources);
+    zero.addEncoderItems("Source4",   ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_sources);
+    zero.addEncoderItems("Source5",   ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_sources);
+    zero.addEncoderItems("Source6",   ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_sources);
+    zero.addEncoderNumeric("Amount1", ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5, -1.0, 1.0);
+    zero.addEncoderNumeric("Amount2", ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5, -1.0, 1.0);
+    zero.addEncoderNumeric("Amount3", ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5, -1.0, 1.0);
+    zero.addEncoderNumeric("Amount4", ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5, -1.0, 1.0);
+    zero.addEncoderNumeric("Amount5", ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5, -1.0, 1.0);
+    zero.addEncoderNumeric("Amount6", ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5, -1.0, 1.0);
+    zero.addEncoderItems("Dest1",     ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_dest);
+    zero.addEncoderItems("Dest2",     ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_dest);
+    zero.addEncoderItems("Dest3",     ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_dest);
+    zero.addEncoderItems("Dest4",     ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_dest);
+    zero.addEncoderItems("Dest5",     ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_dest);
+    zero.addEncoderItems("Dest6",     ZeroSLEnum.Encoders+7, ZeroSLEnum.LeftLCD, 8, 0.5,  mod_dest);
+
+    zero.addKnobNumericInt("ModSlot",     ZeroSLEnum.Knobs+7, ZeroSLEnum.LeftLCD, 8, 1,  6);
 
     zero.addCounterItems("FltType",ZeroSLEnum.LeftUpButton+3,ZeroSLEnum.LeftLCD,4,filter_types);
 
+    // Envelopes
     zero.addEncoderNumeric("Env1Atck", ZeroSLEnum.Encoders+3, ZeroSLEnum.LeftLCD, 4, 0.5, 0.0, 1.0);
     zero.addEncoderNumeric("Env1Dec", ZeroSLEnum.Encoders+4, ZeroSLEnum.LeftLCD, 5, 0.5, 0.0, 1.0);
     zero.addEncoderNumeric("Env1Sus", ZeroSLEnum.Encoders+5, ZeroSLEnum.LeftLCD, 6, 0.5, 0.0, 1.0);
@@ -95,10 +113,17 @@ class MiniVenom extends ZeroSLTopHandler
     zero.addEncoderNumeric("Env2Sus", ZeroSLEnum.Encoders+5, ZeroSLEnum.LeftLCD, 6, 0.5, 0.0, 1.0);
     zero.addEncoderNumeric("Env2Rel", ZeroSLEnum.Encoders+6, ZeroSLEnum.LeftLCD, 7, 0.5, 0.0, 1.0);
 
+
+    /// LFO
     zero.addEncoderItems("Wave1", ZeroSLEnum.Encoders+3, ZeroSLEnum.LeftLCD, 4, 0.5, lfo_waves);
     zero.addEncoderItems("Rate1", ZeroSLEnum.Encoders+4, ZeroSLEnum.LeftLCD, 5, 0.5, lfo_rates);
     zero.addEncoderItems("Wave2", ZeroSLEnum.Encoders+5, ZeroSLEnum.LeftLCD, 6, 0.5, lfo_waves);
     zero.addEncoderItems("Rate2", ZeroSLEnum.Encoders+6, ZeroSLEnum.LeftLCD, 7, 0.5, lfo_rates);
+
+    /// Oscillators
+    zero.addEncoderItems("Osc1Wave", ZeroSLEnum.Encoders+0, ZeroSLEnum.LeftLCD, 1, 0.2, Venom.WavesNoDrums);
+    zero.addEncoderItems("Osc1Oct",  ZeroSLEnum.Encoders+1, ZeroSLEnum.LeftLCD, 2, 1.0, octaves);
+    zero.addEncoderNumeric("Osc1Fine", ZeroSLEnum.Encoders+2, ZeroSLEnum.LeftLCD, 3, 0.5, -50.0, 50.0);
 
     zero.addEncoderItems("Osc2Wave", ZeroSLEnum.Encoders+0, ZeroSLEnum.LeftLCD, 1, 0.2, Venom.WavesNoDrums);
     zero.addEncoderItems("Osc2Oct",  ZeroSLEnum.Encoders+1, ZeroSLEnum.LeftLCD, 2, 1.0, octaves);
@@ -114,7 +139,16 @@ class MiniVenom extends ZeroSLTopHandler
     zero.addToggleLed("LFOSel",ZeroSLEnum.LeftDownButton+5);
 
     zero.addPushLed("ModSel",ZeroSLEnum.LeftUpButton+7);
+  }
 
+  fun void open(string venom_device,string zerosl_device)
+  {
+    zero.open(zerosl_device);
+    venom.open(venom_device);
+
+    setDefaults();
+
+    addControls();
 
     0  => current_osc; // Select the first oscillator as default
     zero.setControlValue("Osc1Sel",1.0,1);
@@ -124,7 +158,35 @@ class MiniVenom extends ZeroSLTopHandler
     zero.setControlValue("Env1Sel",1.0,1);
     showEnv12OrLFO();
 
+    1  => selected_slot;
+    showModControl();
+
     zero.setControlHandler(this);
+  }
+
+  fun void showModControl()
+  {
+    ["Source1","Dest1","Amount1",
+     "Source2","Dest2","Amount2",
+     "Source3","Dest3","Amount3",
+     "Source4","Dest4","Amount4",
+     "Source5","Dest5","Amount5",
+     "Source6","Dest6","Amount6"] @=> string allmod[];
+
+    for(0=>int i;i<allmod.size();1+=>i)
+    {
+      zero.setControlEnable(allmod[i],0);
+    }
+
+    if(source_dest_amt==0){
+      zero.setControlEnable("Source"+Std.itoa(selected_slot),1);
+    }
+    else if(source_dest_amt==1){
+      zero.setControlEnable("Dest"+Std.itoa(selected_slot),1);
+    }
+    else{
+      zero.setControlEnable("Amount"+Std.itoa(selected_slot),1);
+    }
   }
 
   fun void showOsc1Or2()
@@ -373,6 +435,7 @@ class MiniVenom extends ZeroSLTopHandler
     if(name=="ModSel"){
       if(value!=0){
         (source_dest_amt+1)%3 => source_dest_amt;
+        showModControl();
       }
     }
   }
@@ -387,22 +450,23 @@ MiniVenom miniVenom;
 
 miniVenom.open("USB Uno MIDI Interface MIDI 1","ZeRO MkII MIDI 2"); // Venom is conneced to port 3 // ZeroSL is connected to port 2
 
+1::second => now;
 
-//for(0 => int i; i<80; 1+=>i)
-//{
-//  RawMidiSender.sendNoteOn(40,100,miniVenom.venom.mout);
-//  0.2::second => now;
-//  RawMidiSender.sendNoteOff(40,100,miniVenom.venom.mout);
-//  RawMidiSender.sendNoteOn(40+12,100,miniVenom.venom.mout);
-//  0.2::second => now;
-//  RawMidiSender.sendNoteOff(40+12,100,miniVenom.venom.mout);
-//  RawMidiSender.sendNoteOn(40+24,100,miniVenom.venom.mout);
-//  0.2::second => now;
-//  RawMidiSender.sendNoteOff(40+24,100,miniVenom.venom.mout);
-//}
+for(0 => int i; i<80; 1+=>i)
+{
+  RawMidiSender.sendNoteOn(40,100,miniVenom.venom.mout);
+  0.2::second => now;
+  RawMidiSender.sendNoteOff(40,100,miniVenom.venom.mout);
+  RawMidiSender.sendNoteOn(40+12,100,miniVenom.venom.mout);
+  0.2::second => now;
+  RawMidiSender.sendNoteOff(40+12,100,miniVenom.venom.mout);
+  RawMidiSender.sendNoteOn(40+24,100,miniVenom.venom.mout);
+  0.2::second => now;
+  RawMidiSender.sendNoteOff(40+24,100,miniVenom.venom.mout);
+}
 
 while(true){
   10::second => now;
 }
 
-miniVenom.close();
+//miniVenom.close();

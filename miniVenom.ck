@@ -280,8 +280,8 @@ class MiniVenom extends ZeroSLTopHandler
       raw_value * 3.1416 / 2.0 => float angle;
       (Math.cos(angle) * 127.0) $ int => int v1;
       (Math.sin(angle) * 127.0) $ int => int v2;
-      venom.setOsc2Level(v1);
-      venom.setOsc1Level(v2);
+      venom.setOsc1Level(v1);
+      venom.setOsc2Level(v2);
     }
     if(name=="WaveShape"){
       venom.setOcs1WaveShape(value);
@@ -432,12 +432,71 @@ class MiniVenom extends ZeroSLTopHandler
     if(name=="ModSlot"){
       value => selected_slot;
     }
+
     if(name=="ModSel"){
       if(value!=0){
         (source_dest_amt+1)%3 => source_dest_amt;
         showModControl();
       }
     }
+
+    if(name=="Source1"){
+      venom.setMod1Source(mod_sources_values[value]);
+    }
+    if(name=="Source2"){
+      venom.setMod2Source(mod_sources_values[value]);
+    }
+    if(name=="Source3"){
+      venom.setMod3Source(mod_sources_values[value]);
+    }
+    if(name=="Source4"){
+      venom.setMod4Source(mod_sources_values[value]);
+    }
+    if(name=="Source5"){
+      venom.setMod5Source(mod_sources_values[value]);
+    }
+    if(name=="Source6"){
+      venom.setMod6Source(mod_sources_values[value]);
+    }
+
+    if(name=="Dest1"){
+      venom.setMod1Destination(mod_dest_values[value]);
+    }
+    if(name=="Dest2"){
+      venom.setMod2Destination(mod_dest_values[value]);
+    }
+    if(name=="Dest3"){
+      venom.setMod3Destination(mod_dest_values[value]);
+    }
+    if(name=="Dest4"){
+      venom.setMod4Destination(mod_dest_values[value]);
+    }
+    if(name=="Dest5"){
+      venom.setMod5Destination(mod_dest_values[value]);
+    }
+    if(name=="Dest6"){
+      venom.setMod6Destination(mod_dest_values[value]);
+    }
+
+    if(name=="Amount1"){
+      venom.setMod1Amount(value);
+    }
+    if(name=="Amount2"){
+      venom.setMod2Amount(value);
+    }
+    if(name=="Amount3"){
+      venom.setMod3Amount(value);
+    }
+    if(name=="Amount4"){
+      venom.setMod4Amount(value);
+    }
+    if(name=="Amount5"){
+      venom.setMod5Amount(value);
+    }
+    if(name=="Amount6"){
+      venom.setMod6Amount(value);
+    }
+
   }
 }
 
@@ -445,25 +504,44 @@ class MiniVenom extends ZeroSLTopHandler
 
 
 MiniVenom miniVenom;
+OscRecv recv;
 
+8000 => recv.port;
 
+recv.listen();
+
+fun void listenNote(string msg,int note)
+{
+  recv.event(msg) @=> OscEvent push;
+  while ( true )
+  {
+    push => now;
+    while ( push.nextMsg() != 0 )
+    {
+        0 => int vel;
+        if(push.getFloat() > 0.0)
+          100 => vel;
+        RawMidiSender.sendNoteOn(note,vel,miniVenom.venom.mout);
+    }
+  }
+}
+
+52 => int base;
+
+spork ~ listenNote("/1/push1, f",base+1);
+spork ~ listenNote("/1/push2, f",base+2);
+spork ~ listenNote("/1/push3, f",base+3);
+spork ~ listenNote("/1/push4, f",base+4);
+spork ~ listenNote("/1/push5, f",base+5);
+spork ~ listenNote("/1/push6, f",base+6);
+spork ~ listenNote("/1/push7, f",base+7);
+spork ~ listenNote("/1/push8, f",base+8);
+spork ~ listenNote("/1/push9, f",base+9);
+spork ~ listenNote("/1/push10, f",base+10);
+spork ~ listenNote("/1/push11, f",base+11);
+spork ~ listenNote("/1/push12, f",base+12);
 
 miniVenom.open("USB Uno MIDI Interface MIDI 1","ZeRO MkII MIDI 2"); // Venom is conneced to port 3 // ZeroSL is connected to port 2
-
-1::second => now;
-
-for(0 => int i; i<80; 1+=>i)
-{
-  RawMidiSender.sendNoteOn(40,100,miniVenom.venom.mout);
-  0.2::second => now;
-  RawMidiSender.sendNoteOff(40,100,miniVenom.venom.mout);
-  RawMidiSender.sendNoteOn(40+12,100,miniVenom.venom.mout);
-  0.2::second => now;
-  RawMidiSender.sendNoteOff(40+12,100,miniVenom.venom.mout);
-  RawMidiSender.sendNoteOn(40+24,100,miniVenom.venom.mout);
-  0.2::second => now;
-  RawMidiSender.sendNoteOff(40+24,100,miniVenom.venom.mout);
-}
 
 while(true){
   10::second => now;

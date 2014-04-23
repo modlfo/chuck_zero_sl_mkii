@@ -12,6 +12,7 @@ class MiniVenom extends ZeroSLTopHandler
 {
   Venom venom;
   ZeroSLTop zero;
+  MemoryMap mem;
   0  => int current_osc;
   0  => int env_lfo;
   0  => int source_dest_amt;
@@ -55,9 +56,9 @@ class MiniVenom extends ZeroSLTopHandler
     venom.setEnv2Hold(0);
 
     venom.setVoiceUnisonOnOff(0);
-    venom.setInsertFX(0); // bypass
-    venom.setAuxFX1Level(0); // no send 1
-    venom.setAuxFX2Level(0); // no send 2
+    //venom.setInsertFX(0); // bypass
+    venom.setAuxFX1Level(64); // no send 1
+    venom.setAuxFX2Level(64); // no send 2
     venom.setDirectLevel(0x7F); // max direct level
 
     venom.setLFO1Delay(0);  // basic LFO behavior
@@ -250,6 +251,7 @@ class MiniVenom extends ZeroSLTopHandler
 
   fun void handle(string name, float raw_value, int value)
   {
+    mem.setValue(name,raw_value,value);
     <<< name , value >>>;
     if(name=="Osc1Wave")
     {
@@ -498,6 +500,10 @@ class MiniVenom extends ZeroSLTopHandler
     }
 
   }
+  fun void saveToFile(){
+    mem.readFromFile("curent_read.txt");
+    mem.saveToFile("curent.txt");
+  }
 }
 
 
@@ -545,6 +551,7 @@ miniVenom.open("USB Uno MIDI Interface MIDI 1","ZeRO MkII MIDI 2"); // Venom is 
 
 while(true){
   10::second => now;
+  miniVenom.saveToFile();
 }
 
 //miniVenom.close();

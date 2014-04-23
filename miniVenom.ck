@@ -17,6 +17,7 @@ class MiniVenom extends ZeroSLTopHandler
   0  => int env_lfo;
   0  => int source_dest_amt;
   0  => int selected_slot;
+  0 => int update_controls;
 
   ["-4","-3","-2","-1"," 0","+1","+2","+3","+4"] @=> string octaves[];
   ["Off","LP 12","BP 12","HP 12","LP 24","BP 24","HP 24"] @=> string filter_types[];
@@ -151,6 +152,12 @@ class MiniVenom extends ZeroSLTopHandler
 
     addControls();
 
+    mem.readFromFile("curent_read.txt");
+    mem.setParameterHandler(this);
+    1 => update_controls;
+    mem.sendParameters();
+    0 => update_controls;
+
     0  => current_osc; // Select the first oscillator as default
     zero.setControlValue("Osc1Sel",1.0,1);
     showOsc1Or2(); // Enable/dissable the controls for the oscillators
@@ -252,6 +259,9 @@ class MiniVenom extends ZeroSLTopHandler
   fun void handle(string name, float raw_value, int value)
   {
     mem.setValue(name,raw_value,value);
+    if(update_controls!=0){ // true when initializg from file
+      zero.setControlValue(name,raw_value,value);
+    }
     <<< name , value >>>;
     if(name=="Osc1Wave")
     {
@@ -501,7 +511,6 @@ class MiniVenom extends ZeroSLTopHandler
 
   }
   fun void saveToFile(){
-    mem.readFromFile("curent_read.txt");
     mem.saveToFile("curent.txt");
   }
 }

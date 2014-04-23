@@ -1,11 +1,24 @@
 
 
 public class MemoryMap {
+	ZeroSLTopHandler handler;
 	int values[0];
 	float raw_values[0];
 	int keys[0];
 	string keys_iter[0];
 
+	fun void setParameterHandler(ZeroSLTopHandler new_handler){
+		new_handler @=> handler;
+	}
+
+	fun void sendParameters(){
+		keys_iter.size() => int size;
+			for(0=>int i;i<size;i+1=>i){
+				if(keys_iter[i].length()!=0){
+					handler.handle(keys_iter[i],raw_values[keys_iter[i]],values[keys_iter[i]]);
+				}
+			}
+	}
 	fun void setValue(string key_,float raw_value,int value){
 		key_ => string key; // for some weird reason if I don't do this key has a empty string
 		if(key.length()!=0){

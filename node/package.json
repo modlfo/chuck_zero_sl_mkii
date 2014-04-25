@@ -1,0 +1,21 @@
+{
+  "name": "node",
+  "version": "0.9.0",
+  "description": "ZeroSL and Venom connection",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/modlfo/chuck_zero_sl_mkii.git"
+  },
+  "author": "Leonardo Laguna Ruiz",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/modlfo/chuck_zero_sl_mkii/issues"
+  },
+  "dependencies": {
+    "midi": "~0.9.0"
+  }
+}

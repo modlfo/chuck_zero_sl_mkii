@@ -1,25 +1,8 @@
 var midi = require('midi');
 
-
-var ZeroSLPositions = {
-  LeftUpButton : 24,
-  LeftDownButton : 32,
-  RightUpButton : 40,
-  RightDownButton : 49,
-
-  LeftLCD : 0,
-  RightLCD : 1,
-
-  Row1 : 1,
-  Row2 : 2,
-
-  Encoders : 56,
-  Knobs : 8 ,
-  Sliders : 16
-};
-
 function ZeroSL(){
   this.input = new midi.input();
+  this.input.ignoreTypes(false, false, false);
   this.output = new midi.output();
   console.log(this.input.getPortCount());
   console.log(this.input.getPortName(2));
@@ -55,6 +38,10 @@ ZeroSL.prototype.open = function(device) {
   });
 };
 
+ZeroSL.prototype.setControlHandler = function(newHandler){
+  this.controlHandler = newHandler;
+}
+
 ZeroSL.prototype.close = function() {
   this.clear();
   this.output.sendMessage([240,0,32,41,3,3,18,0,4,0,1,0,247]);
@@ -67,10 +54,10 @@ ZeroSL.prototype.clear = function() {
 
   for(var i=0; i<8; i=i+1){
     this.setLedRing(i,0);
-    this.setLedButton(ZeroSLPositions.LeftUpButton+i,0);
-    this.setLedButton(ZeroSLPositions.LeftDownButton+i,0);
-    this.setLedButton(ZeroSLPositions.RightUpButton+i,0);
-    this.setLedButton(ZeroSLPositions.RightDownButton+i,0);
+    this.setLedButton(this.LeftUpButton+i,0);
+    this.setLedButton(this.LeftDownButton+i,0);
+    this.setLedButton(this.RightUpButton+i,0);
+    this.setLedButton(this.RightDownButton+i,0);
   }
 };
 
@@ -158,8 +145,8 @@ Control.prototype.handle = function(control,value) {
 };
 
 Control.prototype.show = function() {
-  for (var i = 0; i < visualizers.length; i++) {
-    visualizers[i].update(raw_value,int_value);
+  for (var i = 0; i < this.visualizers.length; i++) {
+    this.visualizers[i].update(this.raw_value,this.int_value);
   }
 };
 
@@ -176,7 +163,7 @@ Led.prototype.constructor = Led;
 
 Led.prototype.update = function(v,i) {
   if(this.controller)
-    this.controller.setLedButton(cc_value,i);
+    this.controller.setLedButton(this.cc_value,i);
 };
 
 
@@ -188,7 +175,7 @@ function Numeric(){
   this.lcd = 0;
   this.min = 0.0;
   this.max = 1.0;
-  this.int_float = false;
+  this.int_float = true;
 }
 
 Numeric.prototype = new Visualizer();
@@ -198,12 +185,12 @@ Numeric.prototype.update = function(v,i) {
   if(this.controller){
     var val = (this.max-this.min)*v+this.min;
     var s = '';
-    if(int_float)
+    if(this.int_float)
       s = i.toString();
     else
       s = val.toFixed(3);
-    this.controller.writeLabel(this.label,this.lcd,ZeroSLPositions.Row1,this.column);
-    this.controller.writeLabel(s,this.lcd,ZeroSLPositions.Row2,this.column);
+    this.controller.writeLabel(this.label,this.lcd,this.Row1,this.column);
+    this.controller.writeLabel(s,this.lcd,this.Row2,this.column);
   }
 };
 
@@ -237,12 +224,12 @@ Items.prototype.constructor = Items;
 Items.prototype.update = function(v,i) {
   if(this.controller){
     var fixed_index = 0;
-    if(index >= items.length)
-      fixed_index = items.length;
+    if(fixed_index >= this.items.length)
+      fixed_index = this.items.length;
     else
       fixed_index = 0;
-    this.controller.writeLabel(this.label,this.lcd,ZeroSLPositions.Row1,this.column);
-    this.controller.writeLabel(this.items[fixed_index],this.lcd,ZeroSLPositions.Row2,this.column);
+    this.controller.writeLabel(this.label,this.lcd,this.Row1,this.column);
+    this.controller.writeLabel(this.items[fixed_index],this.lcd,this.Row2,this.column);
   }
 };
 
@@ -410,6 +397,21 @@ function ZeroSLControls(){
   this.controller = new ZeroSL();
   this.controls = [];
   this.controlHandler = null;
+
+  this.LeftUpButton = 24;
+  this.LeftDownButton = 32;
+  this.RightUpButton = 40;
+  this.RightDownButton = 49;
+
+  this.LeftLCD = 0;
+  this.RightLCD = 1;
+
+  this.Row1 = 1;
+  this.Row2 = 2;
+
+  this.Encoders = 56;
+  this.Knobs = 8;
+  this.Sliders = 16;
 }
 
 ZeroSLControls.prototype.open = function(device){
@@ -508,12 +510,12 @@ ZeroSLControls.prototype.addToggleNumeric = function(name,position,lcd,column)
 };
 
 /* Adds an encoder with a numeric visualizer */
-funZeroSLControls.prototype.addEncoderNumeric = function(name,position,lcd, column,speed,min,max)
+ZeroSLControls.prototype.addEncoderNumeric = function(name,position,lcd, column,speed,min,max)
 {
   var encoder = new Encoder();
   var num = new Numeric();
   var ring= new LedRing();
-  ring.column = position-ZeroSLPositions.Encoders;
+  ring.column = position-this.Encoders;
   ring.controller = this.controller;
   num.lcd = lcd;
   num.column = column;
@@ -549,13 +551,14 @@ ZeroSLControls.prototype.addKnobNumeric = function(name,position,lcd,column,min,
 ZeroSLControls.prototype.addKnobNumericInt = function(name,position,lcd,column,min,max)
 {
   var knob = new KnobInt();
-  var num = new NumericInt();
+  var num = new Numeric();
+  num.int_float = false;
   num.lcd = lcd;
   num.column = column;
   num.label = name;
   knob.min = min;
   knob.max = max;
-  num.controller = controller;
+  num.controller = this.controller;
   knob.name = name;
   knob.cc_value = position;
   knob.visualizers = [num];
@@ -567,13 +570,13 @@ ZeroSLControls.prototype.addEncoderItems = function(name,position,lcd,column,spe
   var encoder = new Encoder();
   var i = new Items();
   var ring = new LedRing();
-  ring.column = position-ZeroSLPositions.Encoders;
+  ring.column = position-this.Encoders;
   ring.controller = this.controller;
   i.lcd = lcd;
   i.column = column;
   i.label = name;
   i.items = items;
-  i.controller = controller;
+  i.controller = this.controller;
   encoder.name = name;
   encoder.min = 0;
   encoder.max = items.length-1;
@@ -604,9 +607,4 @@ ZeroSLControls.prototype.addCounterItems = function(name,position,lcd,column,ite
     this.addControl(counter);
   };
 
-
-var obj = new ZeroSL();
-
-obj.open('ZeRO MkII 20:1');
-
-obj.close();
+module.exports = ZeroSLControls;

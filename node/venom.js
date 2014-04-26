@@ -1,3 +1,5 @@
+var midi = require('midi');
+
 
 function Venom(){
   this.output = new midi.output();
@@ -58,7 +60,7 @@ Venom.prototype.setOSCStartMod = function(val)
   };
 Venom.prototype.setOSCRingMod = function(val)
   {
-    this.output.sendMessageControl([176,51,val]);
+    this.output.sendMessage([176,51,val]);
   };
   //------ Osc 1
 Venom.prototype.setOsc1Wave = function(wave)
@@ -69,12 +71,12 @@ Venom.prototype.setOsc1Wave = function(wave)
 
 Venom.prototype.setOsc1Coarse = function(level)
   {
-    this.output.sendMessageControl([29,176,level]);
+    this.output.sendMessage([29,176,level]);
   };
 
 Venom.prototype.setOsc1Fine = function(level)
   {
-    this.output.sendMessageControl([61,176,level]);
+    this.output.sendMessage([61,176,level]);
   };
 
 Venom.prototype.setOsc1KeyTrack = function(on_off)
@@ -90,7 +92,7 @@ Venom.prototype.setOsc1KeyTrack = function(on_off)
 
 Venom.prototype.setOcs1To3FM = function(val)
   {
-    this.output.sendMessageControl([176,50,val]);
+    this.output.sendMessage([176,50,val]);
   };
 
 Venom.prototype.setOcs1WaveShape = function(val)
@@ -121,12 +123,12 @@ Venom.prototype.setOsc2Wave = function(wave)
 
 Venom.prototype.setOsc2Coarse = function(level)
   {
-    this.output.sendMessageControl([30,176,level]);
+    this.output.sendMessage([30,176,level]);
   };
 
 Venom.prototype.setOsc2Fine = function(level)
   {
-    this.output.sendMessageControl([62,176,level]);
+    this.output.sendMessage([62,176,level]);
   };
 
 Venom.prototype.setOsc2KeyTrack = function(on_off)
@@ -159,12 +161,12 @@ Venom.prototype.setOsc1Wave = function(wave)
 
 Venom.prototype.setOsc3Coarse = function(level)
   {
-    this.output.sendMessageControl([31,176,level]);
+    this.output.sendMessage([31,176,level]);
   };
 
 Venom.prototype.setOsc3Fine = function(level)
   {
-    this.output.sendMessageControl([63,176,level]);
+    this.output.sendMessage([63,176,level]);
   };
 
 Venom.prototype.setOsc3KeyTrack = function(on_off)
@@ -193,22 +195,22 @@ Venom.prototype.setOsc3Sync = function(on_off)
 
 Venom.prototype.setOsc1Level = function(level)
   {
-    this.output.sendMessageControl([56,176,level]);
+    this.output.sendMessage([56,176,level]);
   };
 
 Venom.prototype.setOsc2Level = function(level)
   {
-    this.output.sendMessageControl([57,176,level]);
+    this.output.sendMessage([57,176,level]);
   };
 
 Venom.prototype.setOsc3Level = function(level)
   {
-    this.output.sendMessageControl([58,176,level]);
+    this.output.sendMessage([58,176,level]);
   };
 
 Venom.prototype.setExtLevel = function(level)
   {
-    this.output.sendMessageControl([54,176,level]);
+    this.output.sendMessage([54,176,level]);
   };
 
 Venom.prototype.setExtSource = function(val)
@@ -217,7 +219,7 @@ Venom.prototype.setExtSource = function(val)
     {
       val = 6;
     }
-    this.output.sendMessageControl([176,55,val]);
+    this.output.sendMessage([176,55,val]);
   };
 
   /// ---- Pitch
@@ -244,7 +246,7 @@ Venom.prototype.setGlideRange = function(val)
 
 Venom.prototype.setBendRange = function(val)
   {
-    this.output.sendMessageControl([176,60,val]);
+    this.output.sendMessage([176,60,val]);
   };
 
    /// ----- Filter
@@ -271,7 +273,7 @@ Venom.prototype.setBoost = function(val)
 Venom.prototype.setFilterType = function(val)
   {
     if(val<=6)
-      this.output.sendMessageControl([176,70,val]);
+      this.output.sendMessage([176,70,val]);
   };
 
   // ------- Envelopes
@@ -544,3 +546,4 @@ Venom.prototype.setMod6Amount = function(val)
     this.output.sendMessage(msg);
   };
 
+module.exports = Venom;

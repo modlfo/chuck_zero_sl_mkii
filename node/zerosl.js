@@ -196,7 +196,7 @@ Numeric.prototype.constructor = Numeric;
 
 Numeric.prototype.update = function(v,i) {
   if(this.controller){
-    var val = (max-min)*v+min;
+    var val = (this.max-this.min)*v+this.min;
     var s = '';
     if(int_float)
       s = i.toString();
@@ -222,6 +222,387 @@ LedRing.prototype.update = function(v,i) {
     this.controller.setLedRing(this.column,ring_value);
   }
 };
+
+/* Items visualizer */
+function Items(){
+  Visualizer.call(this);
+  this.column = 0;
+  this.lcd = 0;
+  this.items = [];
+}
+
+Items.prototype = new Visualizer();
+Items.prototype.constructor = Items;
+
+Items.prototype.update = function(v,i) {
+  if(this.controller){
+    var fixed_index = 0;
+    if(index >= items.length)
+      fixed_index = items.length;
+    else
+      fixed_index = 0;
+    this.controller.writeLabel(this.label,this.lcd,ZeroSLPositions.Row1,this.column);
+    this.controller.writeLabel(this.items[fixed_index],this.lcd,ZeroSLPositions.Row2,this.column);
+  }
+};
+
+/* ToggleButton controller */
+function ToggleButton(){
+  Control.call(this);
+}
+
+ToggleButton.prototype = new Control();
+Items.prototype.constructor = ToggleButton;
+
+ToggleButton.prototype.handle = function(control,v) {
+  if(control==this.cc_value){
+    if(v!==0){
+      if(this.int_value!==0){
+        this.int_value = 0;
+        this.raw_value = 0.0;
+      }
+      else {
+        this.int_value = 127;
+        this.raw_value = 1.0;
+      }
+      this.show();
+      return 1;
+    }
+  }
+  return 0;
+};
+
+/* PushButton controller */
+function PushButton(){
+  Control.call(this);
+}
+
+PushButton.prototype = new Control();
+Items.prototype.constructor = PushButton;
+
+PushButton.prototype.handle = function(control,v) {
+  if(control==this.cc_value){
+    if(v===0){
+      if(this.int_value!==0){
+        this.int_value = 0;
+        this.raw_value = 0.0;
+      }
+      else {
+        this.int_value = 127;
+        this.raw_value = 1.0;
+      }
+      this.show();
+      return 1;
+    }
+  }
+  return 0;
+};
+
+/* CountButton controller */
+function CountButton(){
+  Control.call(this);
+  this.min = 0;
+  this.max = 127;
+}
+
+CountButton.prototype = new Control();
+Items.prototype.constructor = CountButton;
+
+CountButton.prototype.handle = function(control,v) {
+  if(control==this.cc_value){
+    if(v!==0){
+      this.int_value++;
+      if(this.int_value>this.max)
+        this.int_value = this.min;
+      if(this.int_value<this.min)
+        this.int_value = this.max;
+      var range = this.max - this.min;
+      var delta = this.int_value-this.min;
+      this.raw_value = delta/range;
+      this.show();
+      return 1;
+    }
+  }
+  return 0;
+};
+
+/* Knob controller */
+function Knob(){
+  Control.call(this);
+  this.min = 0;
+  this.max = 127;
+}
+
+Knob.prototype = new Control();
+Items.prototype.constructor = Knob;
+
+Knob.prototype.handle = function(control,v) {
+  if(control==this.cc_value){
+    this.int_value = v;
+    var range = this.max-this.min;
+    var delta = this.int_value-this.min;
+    this.raw_value = delta/range;
+    this.show();
+    return 1;
+  }
+  return 0;
+};
+
+/* KnobInt controller */
+function KnobInt(){
+  Control.call(this);
+  this.min = 0;
+  this.max = 127;
+}
+
+KnobInt.prototype = new Control();
+Items.prototype.constructor = KnobInt;
+
+KnobInt.prototype.handle = function(control,v) {
+  if(control==this.cc_value){
+    this.raw_value = v/127.0;
+    var range = this.max-this.min;
+    this.int_value = Math.round((this.raw_value*range)+this.min);
+    this.show();
+    return 1;
+  }
+  return 0;
+};
+
+/* Encoder controller */
+function Encoder(){
+  Control.call(this);
+  this.min = 0;
+  this.max = 127;
+  this.speed = 1.0;
+}
+
+Encoder.prototype = new Control();
+Items.prototype.constructor = Encoder;
+
+Encoder.prototype.handle = function(control,v) {
+  if(control==this.cc_value){
+    var direction = 1.0;
+    var fixed_v = v;
+    if(fixed_v>64){
+      direction = -1.0;
+      fixed_v -= 64;
+    }
+    this.raw_value += direction*this.speed*fixed_v/127.0;
+    if(this.raw_value > 1.0)
+      this.raw_value = 1.0;
+    if(this.raw_value < 0.0)
+      this.raw_value = 0.0;
+    this.int_value = Math.round(((this.max-this.min)*this.raw_value)+this.min);
+    if(this.int_value>this.max)
+      this.int_value = this.max;
+    if(this.int_value<this.min)
+      this.int_value = this.min;
+    this.show();
+    return 1;
+  }
+  return 0;
+};
+
+/* ZeroSL control layer */
+
+function ZeroSLControls(){
+  this.controller = new ZeroSL();
+  this.controls = [];
+  this.controlHandler = null;
+}
+
+ZeroSLControls.prototype.open = function(device){
+  this.controller.open(device);
+  this.controller.setControlHandler(this);
+  this.controller.clear();
+};
+
+ZeroSLControls.prototype.close = function() {
+  controller.close();
+};
+
+ZeroSLControls.prototype.addControl = function(c){
+  this.controls.push(c);
+  c.show();
+};
+
+ZeroSLControls.prototype.handle = function(control,value) {
+  for(var i=0;i<this.controls.length; i++){
+    if(this.controls[i].enabled){
+      if(this.controls[i].handle(control,value)!==0){
+        if(this.controlHandler){
+          this.controlHandler.handle(this.controls[i].name,this.controls[i].raw_value,this.controls[i].int_value);
+        }
+      }
+    }
+  }
+};
+
+
+ZeroSLControls.prototype.setControlValue = function(name,raw_value,int_value){
+  for(var i=0; i<this.controls.length; i++){
+    if(this.controls[i].name==name){
+      this.controls[i].raw_value = raw_value;
+      this.controls[i].int_value = int_value;
+      this.controls[i].show();
+    }
+  }
+};
+
+ZeroSLControls.prototype.setControlValue = function(name,on_off){
+  for(var i=0; i<this.controls.length; i++){
+    if(this.controls[i].name==name){
+      this.controls[i].enabled=on_off;
+      if(on_off) this.controls[i].show();
+    }
+  }
+};
+
+ZeroSLControls.prototype.setControlHandler = function(newHandler){
+  this.controlHandler = newHandler;
+};
+
+/* Adds a push button with a Led visualizer */
+ZeroSLControls.prototype.addPushLed = function(name,position)
+{
+  var push = new PushButton();
+  var led = new Led();
+  led.cc_value = position;
+  led.controller = this.controller;
+  push.name = name;
+  push.cc_value = position;
+  push.visualizers = [led];
+  this.addControl(push);
+};
+
+/* Adds a toggle button with a Led visualizer */
+ZeroSLControls.prototype.addToggleLed = function(name,position)
+{
+  var toggle = new ToggleButton();
+  var led = new Led();
+  led.cc_value = position;
+  led.controller = this.controller;
+  toggle.name = name;
+  toggle.cc_value = position;
+  toggle.visualizers = [led];
+  this.addControl(toggle);
+};
+
+/* Adds a toggle button with a numeric visualizer */
+ZeroSLControls.prototype.addToggleNumeric = function(name,position,lcd,column)
+{
+  var toggle = new ToggleButton();
+  var num = new Numeric();
+  var led = new Led();
+  led.cc_value = position;
+  led.controller = this.controller;
+  num.lcd = lcd;
+  num.column = column;
+  num.label = name;
+  num.controller = this.controller;
+  toggle.name = name;
+  toggle.cc_value = position;
+  toggle.visualizers = [num, led];
+  this.addControl(toggle);
+};
+
+/* Adds an encoder with a numeric visualizer */
+funZeroSLControls.prototype.addEncoderNumeric = function(name,position,lcd, column,speed,min,max)
+{
+  var encoder = new Encoder();
+  var num = new Numeric();
+  var ring= new LedRing();
+  ring.column = position-ZeroSLPositions.Encoders;
+  ring.controller = this.controller;
+  num.lcd = lcd;
+  num.column = column;
+  num.label = name;
+  num.min = min;
+  num.max = max;
+  num.controller = this.controller;
+  encoder.name = name;
+  encoder.cc_value = position;
+  encoder.speed = speed;
+  encoder.visualizers = [num, ring];
+  this.addControl(encoder);
+};
+
+  /* Adds a knob with a numeric visualizer */
+ZeroSLControls.prototype.addKnobNumeric = function(name,position,lcd,column,min,max)
+{
+  var knob = new Knob();
+  var num = new Numeric();
+  num.lcd = lcd;
+  num.column = column;
+  num.label = name;
+  num.min = min;
+  num.max = max;
+  num.controller = this.controller;
+  knob.name = name;
+  knob.cc_value = position;
+  knob.visualizers = [num];
+  this.addControl(knob);
+};
+
+/* Adds a knob with a numeric visualizer */
+ZeroSLControls.prototype.addKnobNumericInt = function(name,position,lcd,column,min,max)
+{
+  var knob = new KnobInt();
+  var num = new NumericInt();
+  num.lcd = lcd;
+  num.column = column;
+  num.label = name;
+  knob.min = min;
+  knob.max = max;
+  num.controller = controller;
+  knob.name = name;
+  knob.cc_value = position;
+  knob.visualizers = [num];
+  this.addControl(knob);
+};
+
+ZeroSLControls.prototype.addEncoderItems = function(name,position,lcd,column,speed,items)
+{
+  var encoder = new Encoder();
+  var i = new Items();
+  var ring = new LedRing();
+  ring.column = position-ZeroSLPositions.Encoders;
+  ring.controller = this.controller;
+  i.lcd = lcd;
+  i.column = column;
+  i.label = name;
+  i.items = items;
+  i.controller = controller;
+  encoder.name = name;
+  encoder.min = 0;
+  encoder.max = items.length-1;
+  encoder.speed = speed;
+  encoder.cc_value = position;
+  encoder.visualizers = [i,ring];
+  this.addControl(encoder);
+};
+
+/* Adds a list of items controlled by a button */
+ZeroSLControls.prototype.addCounterItems = function(name,position,lcd,column,items)
+  {
+    var counter = new CountButton();
+    var i = new Items();
+    var led = new Led();
+    led.cc_value = position;
+    led.controller = this.controller;
+    i.lcd = lcd;
+    i.column = column;
+    i.label = name;
+    i.items = items;
+    i.controller = this.controller;
+    counter.name = name;
+    counter.min = 0;
+    counter.max = items.length-1;
+    counter.cc_value = position;
+    counter.visualizers = [i,led];
+    this.addControl(counter);
+  };
 
 
 var obj = new ZeroSL();

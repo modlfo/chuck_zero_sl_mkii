@@ -10,6 +10,7 @@
 
 var Venom = require('./venom.js');
 var ZeroSLControls = require('./zerosl.js');
+var midi = require('midi');
 
 function MiniVenom(){
   this.venom = new Venom();
@@ -38,7 +39,7 @@ MiniVenom.prototype.open = function(venom_device,zerosl_device){
   this.venom.open(venom_device);
 
   this.setDefaults();
-  this.addControls();
+  //this.addControls();
 };
 
 MiniVenom.prototype.setDefaults = function()
@@ -48,24 +49,24 @@ MiniVenom.prototype.setDefaults = function()
   this.venom.setOSCStartMod(0);
   this.venom.setOSCRingMod(0);
   this.venom.setOsc1KeyTrack(1);
-  this.venom.setOsc2KeyTrack(1);
-  this.venom.setOcs1To3FM(0); // no FM mot to osc 3
-  this.venom.setOsc2Sync(0); // no sync to make it "more" analog
-  this.venom.setOsc3Level(0); // no osc 3
-  this.venom.setExtLevel(0); // not receiving external audio
-  this.venom.setEnv1Hold(0); // not using hold in envelopes
-  this.venom.setEnv2Hold(0);
-  this.venom.setVoiceUnisonOnOff(0);
-  //this.venom.setInsertFX(0); // bypass
-  this.venom.setAuxFX1Level(64); // no send 1
-  this.venom.setAuxFX2Level(64); // no send 2
-  this.venom.setDirectLevel(0x7F); // max direct level
-  this.venom.setLFO1Delay(0);  // basic LFO behavior
-  this.venom.setLFO1Attack(0);
-  this.venom.setLFO1Start(0);
-  this.venom.setLFO2Delay(0);
-  this.venom.setLFO2Attack(0);
-  this.venom.setLFO2Start(0);
+  //this.venom.setOsc2KeyTrack(1);
+  //this.venom.setOcs1To3FM(0); // no FM mot to osc 3
+  //this.venom.setOsc2Sync(0); // no sync to make it "more" analog
+  //this.venom.setOsc3Level(0); // no osc 3
+  //this.venom.setExtLevel(0); // not receiving external audio
+  //this.venom.setEnv1Hold(0); // not using hold in envelopes
+  //this.venom.setEnv2Hold(0);
+  //this.venom.setVoiceUnisonOnOff(0);
+  ////this.venom.setInsertFX(0); // bypass
+  //this.venom.setAuxFX1Level(64); // no send 1
+  //this.venom.setAuxFX2Level(64); // no send 2
+  //this.venom.setDirectLevel(0x7F); // max direct level
+  //this.venom.setLFO1Delay(0);  // basic LFO behavior
+  //this.venom.setLFO1Attack(0);
+  //this.venom.setLFO1Start(0);
+  //this.venom.setLFO2Delay(0);
+  //this.venom.setLFO2Attack(0);
+  //this.venom.setLFO2Start(0);
 };
 
 MiniVenom.prototype.addControls =  function(){
@@ -127,7 +128,16 @@ MiniVenom.prototype.addControls =  function(){
 };
 
 
+// print port names
+var input = new midi.input();
+var ports = input.getPortCount();
+for (var i = 0; i < ports; i++) {
+    name = input.getPortName(i);
+    console.log(i+': '+name);
+}
 
 var miniVenom = new MiniVenom();
 
-miniVenom.open('USB Uno MIDI Interface MIDI 1','ZeRO MkII MIDI 2');
+miniVenom.open('USB Uno MIDI Interface 20:0','ZeRO MkII 24:1');
+
+  

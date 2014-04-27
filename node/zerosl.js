@@ -4,8 +4,6 @@ function ZeroSL(){
   this.input = new midi.input();
   this.input.ignoreTypes(false, false, false);
   this.output = new midi.output();
-  console.log(this.input.getPortCount());
-  console.log(this.input.getPortName(2));
 }
 
 ZeroSL.prototype.open = function(device) {

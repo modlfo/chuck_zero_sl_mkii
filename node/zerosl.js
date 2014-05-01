@@ -1,5 +1,25 @@
 var midi = require('midi');
 
+
+ZeroPos = 
+ {
+
+  LeftUpButton : 24,
+  LeftDownButton : 32,
+  RightUpButton : 40,
+  RightDownButton : 49,
+
+  LeftLCD : 0,
+  RightLCD : 1,
+
+  Row1 : 1,
+  Row2 : 2,
+
+  Encoders : 56,
+  Knobs : 8,
+  Sliders : 16
+};
+
 function ZeroSL(){
   this.input = new midi.input();
   this.input.ignoreTypes(false, false, false);
@@ -30,15 +50,27 @@ ZeroSL.prototype.open = function(device) {
   }
   /* Send conenct message */
   this.output.sendMessage([240,0,32,41,3,3,18,0,4,0,1,1,247]);
-  /* Callback for messages */
-  this.input.on('message', function(deltaTime, message) {
-    console.log('m:' + message + ' d:' + deltaTime);
-  });
+
+  for(i=0; i<8; i=i+1){
+    this.setLedRing(i,3);
+    this.setLedButton(24+i,127);
+    this.writeLabel(i,0,1,i+1);
+    this.writeLabel(i,0,2,i+1);
+  }
 };
 
 ZeroSL.prototype.setControlHandler = function(newHandler){
   this.controlHandler = newHandler;
-}
+  /* Callback for messages */
+  this.input.on('message', function(deltaTime, message) {
+    //console.log(message);
+    if(message[0]==176){
+      if(newHandler){
+        newHandler.handle(message[1],message[2]);
+      }
+    }
+  });
+};
 
 ZeroSL.prototype.close = function() {
   this.clear();
@@ -52,10 +84,10 @@ ZeroSL.prototype.clear = function() {
 
   for(var i=0; i<8; i=i+1){
     this.setLedRing(i,0);
-    this.setLedButton(this.LeftUpButton+i,0);
-    this.setLedButton(this.LeftDownButton+i,0);
-    this.setLedButton(this.RightUpButton+i,0);
-    this.setLedButton(this.RightDownButton+i,0);
+    this.setLedButton(ZeroPos.LeftUpButton+i,0);
+    this.setLedButton(ZeroPos.LeftDownButton+i,0);
+    this.setLedButton(ZeroPos.RightUpButton+i,0);
+    this.setLedButton(ZeroPos.RightDownButton+i,0);
   }
 };
 
@@ -88,10 +120,10 @@ ZeroSL.prototype.writeLabel = function(ss,left_right,row,column) {
     else
     {
       var spaces = 8 - s.length;
-      var pre_s =  appendRepeated(""," ",spaces/2);
+      var pre_s =  appendRepeated('',' ',spaces/2);
       str = pre_s+s;
       spaces = 8 - str.length;
-      str = appendRepeated(str," ",spaces);
+      str = appendRepeated(str,' ',spaces);
     }
     this.write(str,display,(column-1)*9);
 };
@@ -108,8 +140,8 @@ ZeroSL.prototype.write = function(s,display,position) {
 	var msg = [240,0,32,41,3,3,18,0,4,0,2,1,position,display,4];
   var s_length = s.length;
   // append the characters to the array
-  for(var i;i<s_length;i=i+1){
-      msg.push(s[i]);
+  for(var i=0;i<s_length;i++){
+      msg.push(s.charCodeAt(i));
   }
   msg.push(247); // finalize the message
   this.output.sendMessage(msg);
@@ -169,8 +201,7 @@ Led.prototype.update = function(v,i) {
 function Numeric(){
   Visualizer.call(this);
   this.column = 0;
-  this.lcd = 0;
-  this.lcd = 0;
+  this.lcd = ZeroPos.LeftLCD;
   this.min = 0.0;
   this.max = 1.0;
   this.int_float = true;
@@ -184,11 +215,11 @@ Numeric.prototype.update = function(v,i) {
     var val = (this.max-this.min)*v+this.min;
     var s = '';
     if(this.int_float)
-      s = i.toString();
-    else
       s = val.toFixed(3);
-    this.controller.writeLabel(this.label,this.lcd,this.Row1,this.column);
-    this.controller.writeLabel(s,this.lcd,this.Row2,this.column);
+    else
+      s = i.toString();
+    this.controller.writeLabel(this.label,this.lcd,ZeroPos.Row1,this.column);
+    this.controller.writeLabel(s,this.lcd,ZeroPos.Row2,this.column);
   }
 };
 
@@ -226,8 +257,8 @@ Items.prototype.update = function(v,i) {
       fixed_index = this.items.length;
     else
       fixed_index = 0;
-    this.controller.writeLabel(this.label,this.lcd,this.Row1,this.column);
-    this.controller.writeLabel(this.items[fixed_index],this.lcd,this.Row2,this.column);
+    this.controller.writeLabel(this.label,this.lcd,ZeroPos.Row1,this.column);
+    this.controller.writeLabel(this.items[fixed_index],this.lcd,ZeroPos.Row2,this.column);
   }
 };
 
@@ -395,21 +426,6 @@ function ZeroSLControls(){
   this.controller = new ZeroSL();
   this.controls = [];
   this.controlHandler = null;
-
-  this.LeftUpButton = 24;
-  this.LeftDownButton = 32;
-  this.RightUpButton = 40;
-  this.RightDownButton = 49;
-
-  this.LeftLCD = 0;
-  this.RightLCD = 1;
-
-  this.Row1 = 1;
-  this.Row2 = 2;
-
-  this.Encoders = 56;
-  this.Knobs = 8;
-  this.Sliders = 16;
 }
 
 ZeroSLControls.prototype.open = function(device){
@@ -450,7 +466,7 @@ ZeroSLControls.prototype.setControlValue = function(name,raw_value,int_value){
   }
 };
 
-ZeroSLControls.prototype.setControlValue = function(name,on_off){
+ZeroSLControls.prototype.setControlEnable = function(name,on_off){
   for(var i=0; i<this.controls.length; i++){
     if(this.controls[i].name==name){
       this.controls[i].enabled=on_off;
@@ -513,7 +529,7 @@ ZeroSLControls.prototype.addEncoderNumeric = function(name,position,lcd, column,
   var encoder = new Encoder();
   var num = new Numeric();
   var ring= new LedRing();
-  ring.column = position-this.Encoders;
+  ring.column = position-ZeroPos.Encoders;
   ring.controller = this.controller;
   num.lcd = lcd;
   num.column = column;
@@ -568,7 +584,7 @@ ZeroSLControls.prototype.addEncoderItems = function(name,position,lcd,column,spe
   var encoder = new Encoder();
   var i = new Items();
   var ring = new LedRing();
-  ring.column = position-this.Encoders;
+  ring.column = position-ZeroPos.Encoders;
   ring.controller = this.controller;
   i.lcd = lcd;
   i.column = column;
@@ -606,3 +622,8 @@ ZeroSLControls.prototype.addCounterItems = function(name,position,lcd,column,ite
   };
 
 module.exports = ZeroSLControls;
+
+var z = new ZeroSL();
+
+z.open('ZeRO MkII 24:1');
+z.setLedButton(z.LeftUpButton,127);

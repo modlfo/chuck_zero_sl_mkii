@@ -75,7 +75,7 @@ MiniVenom.prototype.setDefaults = function()
   this.venom.setEnv1Hold(0); // not using hold in envelopes
   this.venom.setEnv2Hold(0);
   this.venom.setVoiceUnisonOnOff(0);
-  //this.venom.setInsertFX(0); // bypass
+  this.venom.setInsertFX(0); // bypass
   this.venom.setAuxFX1Level(64); // no send 1
   this.venom.setAuxFX2Level(64); // no send 2
   this.venom.setDirectLevel(0x7F); // max direct level
@@ -481,6 +481,10 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
 
   };
 
+MiniVenom.prototype.sendVenomMessage = function(msg){
+  this.venom.sendMessage(msg);
+};
+
 
 // print port names
 var input = new midi.input();
@@ -494,4 +498,23 @@ var miniVenom = new MiniVenom();
 
 miniVenom.open('USB Uno MIDI Interface 20:0','ZeRO MkII 24:1');
 
+var o2 = new midi.input();
+
+
+var ports = o2.getPortCount();
+  var name = '';
+  for (var i = 0; i < ports; i++) {
+    name = o2.getPortName(i);
+    if(name.indexOf('ZeRO MkII 24:1')>-1){
+      o2.openPort(i);
+      console.log('Opening input '+name);
+      break;
+    }
+  }
+
+o2.on('message', function(deltaTime, message) {
+    if((message[0] & 0xF0)!=0xB0){
+      miniVenom.sendVenomMessage(message);
+    }
+  });
   

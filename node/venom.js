@@ -5,15 +5,15 @@ function Venom(){
   this.output = new midi.output();
 
   this.WavesNoDrums =
-  ["HP Sine","PB Sine","RP Sine",
-               "SH Tri",   "MG Tri",   "RP Tri",
-   "PB Saw",   "SH Saw",   "MG Saw",   "OB Saw",   "JX Saw",   "RP Saw",   "MS Saw",
-   "PB Square","SH Square","MG Square","OB Square","JX Square","RP Square","MS Square",
-   "AL Pulse", "MG Pulse",
-   "MG Sync", "SH Sync","JH Sync",
-   "BitWave1","BitWave2","BitWave3",
-   "ALFMWave","DPXWave","RPFMWave","ALFMBass","ALFMQuack","ALFMWoody",
-   "ALFMScn", "ALFMOrg1","ALFMOrg2","ALFMInh","MGWNoise"];
+  ['HP Sine','PB Sine','RP Sine',
+               'SH Tri',   'MG Tri',   'RP Tri',
+   'PB Saw',   'SH Saw',   'MG Saw',   'OB Saw',   'JX Saw',   'RP Saw',   'MS Saw',
+   'PB Square','SH Square','MG Square','OB Square','JX Square','RP Square','MS Square',
+   'AL Pulse', 'MG Pulse',
+   'MG Sync', 'SH Sync','JH Sync',
+   'BitWave1','BitWave2','BitWave3',
+   'ALFMWave','DPXWave','RPFMWave','ALFMBass','ALFMQuack','ALFMWoody',
+   'ALFMScn', 'ALFMOrg1','ALFMOrg2','ALFMInh','MGWNoise'];
 
   this.msg18 = 0x00;
 
@@ -69,6 +69,7 @@ Venom.prototype.setOSCRingMod = function(val)
   //------ Osc 1
 Venom.prototype.setOsc1Wave = function(wave)
   {
+    console.log('Setting the wave');
     var msg = [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x1A,0x00,wave,0xF7];
     this.output.sendMessage(msg);
   };
@@ -87,7 +88,6 @@ Venom.prototype.setOsc1Fine = function(level)
 
 Venom.prototype.setOsc1KeyTrack = function(on_off)
   {
-    var val = 0;
     if(on_off!==0)
       this.msg18 = this.msg18 & (~0x08);
     else
@@ -144,7 +144,7 @@ Venom.prototype.setOsc2Fine = function(level)
 
 Venom.prototype.setOsc2KeyTrack = function(on_off)
   {
-    if(on_off!==0)
+    if(on_off===0)
       this.msg18 = this.msg18 | 0x10;
     else
       this.msg18 = this.msg18 & (~0x10);
@@ -163,7 +163,7 @@ Venom.prototype.setOsc2Sync = function(on_off)
   };
 
   //------- Osc 3
-Venom.prototype.setOsc1Wave = function(wave)
+Venom.prototype.setOsc3Wave = function(wave)
   {
     var msg = [0xF0,0x00,0x01,0x05,0x21,0x00,0x02,0x09,0x00,0x21,0x00,wave,0xF7];
     this.output.sendMessage(msg);

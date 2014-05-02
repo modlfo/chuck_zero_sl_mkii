@@ -228,11 +228,11 @@ MiniVenom.prototype.showEnv12OrLFO = function()
 
 MiniVenom.prototype.handle = function(name,raw_value,value)
   {
+    //console.log('\''+name+'\'' , value);
     //mem.setValue(name,raw_value,value);
     if(this.update_controls!==0){ // true when initializg from file
       this.zero.setControlValue(name,raw_value,value);
     }
-    console.log(name , value);
     if(name=='Osc1Wave')
     {
       this.venom.setOsc1Wave(value);

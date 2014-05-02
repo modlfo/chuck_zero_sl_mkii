@@ -622,8 +622,3 @@ ZeroSLControls.prototype.addCounterItems = function(name,position,lcd,column,ite
   };
 
 module.exports = ZeroSLControls;
-
-var z = new ZeroSL();
-
-z.open('ZeRO MkII 24:1');
-z.setLedButton(z.LeftUpButton,127);

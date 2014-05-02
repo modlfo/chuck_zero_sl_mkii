@@ -252,10 +252,10 @@ Items.prototype.constructor = Items;
 
 Items.prototype.update = function(v,i) {
   if(this.controller){
-    var fixed_index = 0;
+    var fixed_index = i;
     if(fixed_index >= this.items.length)
       fixed_index = this.items.length;
-    else
+    if(fixed_index<0)
       fixed_index = 0;
     this.controller.writeLabel(this.label,this.lcd,ZeroPos.Row1,this.column);
     this.controller.writeLabel(this.items[fixed_index],this.lcd,ZeroPos.Row2,this.column);
@@ -268,7 +268,7 @@ function ToggleButton(){
 }
 
 ToggleButton.prototype = new Control();
-Items.prototype.constructor = ToggleButton;
+ToggleButton.prototype.constructor = ToggleButton;
 
 ToggleButton.prototype.handle = function(control,v) {
   if(control==this.cc_value){
@@ -294,7 +294,7 @@ function PushButton(){
 }
 
 PushButton.prototype = new Control();
-Items.prototype.constructor = PushButton;
+PushButton.prototype.constructor = PushButton;
 
 PushButton.prototype.handle = function(control,v) {
   if(control==this.cc_value){
@@ -322,7 +322,7 @@ function CountButton(){
 }
 
 CountButton.prototype = new Control();
-Items.prototype.constructor = CountButton;
+CountButton.prototype.constructor = CountButton;
 
 CountButton.prototype.handle = function(control,v) {
   if(control==this.cc_value){
@@ -350,7 +350,7 @@ function Knob(){
 }
 
 Knob.prototype = new Control();
-Items.prototype.constructor = Knob;
+Knob.prototype.constructor = Knob;
 
 Knob.prototype.handle = function(control,v) {
   if(control==this.cc_value){
@@ -372,7 +372,7 @@ function KnobInt(){
 }
 
 KnobInt.prototype = new Control();
-Items.prototype.constructor = KnobInt;
+KnobInt.prototype.constructor = KnobInt;
 
 KnobInt.prototype.handle = function(control,v) {
   if(control==this.cc_value){
@@ -394,7 +394,7 @@ function Encoder(){
 }
 
 Encoder.prototype = new Control();
-Items.prototype.constructor = Encoder;
+Encoder.prototype.constructor = Encoder;
 
 Encoder.prototype.handle = function(control,v) {
   if(control==this.cc_value){

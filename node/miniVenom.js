@@ -10,11 +10,13 @@
 
 var Venom = require('./venom.js');
 var ZeroSLControls = require('./zerosl.js');
+var Preset = require('./preset.js');
 var midi = require('midi');
 
 function MiniVenom(){
   this.venom = new Venom();
   this.zero = new ZeroSLControls();
+  this.preset = new Preset();
 
   this.octaves = ['-4','-3','-2','-1',' 0','+1','+2','+3','+4'];
   this.filter_types = ['Off','LP 12','BP 12','HP 12','LP 24','BP 24','HP 24'];
@@ -46,9 +48,12 @@ MiniVenom.prototype.open = function(venom_device,zerosl_device){
   this.setDefaults();
   this.addControls();
 
+  this.preset.readFromFile("current_init.txt");
+  this.preset.setParameterHandler(this);
   this.update_controls = 1;
-  //mem.sendParameters();
+  //this.preset.sendParameters();
   this.update_controls = 0;
+
   this.current_osc = 0; // Select the first oscillator as default
   this.zero.setControlValue('Osc1Sel',1.0,1);
   this.showOsc1Or2(); // Enable/dissable the controls for the oscillators
@@ -88,7 +93,7 @@ MiniVenom.prototype.setDefaults = function()
 };
 
 MiniVenom.prototype.addControls =  function(){
-  this.zero.addKnobNumeric('Mix 1-2',  ZeroPos.Knobs+0, ZeroPos.LeftLCD, 1, -1.0, 1.0);
+  this.zero.addKnobNumeric('Mix 1x2',  ZeroPos.Knobs+0, ZeroPos.LeftLCD, 1, -1.0, 1.0);
   this.zero.addKnobNumeric('WaveShape',ZeroPos.Knobs+1, ZeroPos.LeftLCD, 2, 0.0,  1.0);
   this.zero.addKnobNumeric('Glide',    ZeroPos.Knobs+2, ZeroPos.LeftLCD, 3, 0.0,  1.0);
   this.zero.addKnobNumeric('Cutoff',   ZeroPos.Knobs+3, ZeroPos.LeftLCD, 4, 0.0,  1.0);
@@ -229,7 +234,7 @@ MiniVenom.prototype.showEnv12OrLFO = function()
 MiniVenom.prototype.handle = function(name,raw_value,value)
   {
     //console.log('\''+name+'\'' , value);
-    //mem.setValue(name,raw_value,value);
+    this.preset.setValue(name,raw_value,value);
     if(this.update_controls!==0){ // true when initializg from file
       this.zero.setControlValue(name,raw_value,value);
     }
@@ -485,6 +490,10 @@ MiniVenom.prototype.sendVenomMessage = function(msg){
   this.venom.sendMessage(msg);
 };
 
+MiniVenom.prototype.saveToFile = function(){
+  this.preset.saveToFile('current.txt');
+}
+
 
 // print port names
 var input = new midi.input();
@@ -496,7 +505,7 @@ for (var i = 0; i < ports; i++) {
 
 var miniVenom = new MiniVenom();
 
-miniVenom.open('USB Uno MIDI Interface 20:0','ZeRO MkII 24:1');
+miniVenom.open('USB Uno MIDI Interface 24:0','ZeRO MkII 20:1');
 
 var o2 = new midi.input();
 
@@ -518,3 +527,6 @@ o2.on('message', function(deltaTime, message) {
     }
   });
   
+setInterval(function(){
+  miniVenom.saveToFile();
+  }, 3000);

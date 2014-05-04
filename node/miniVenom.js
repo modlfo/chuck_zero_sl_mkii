@@ -48,11 +48,6 @@ MiniVenom.prototype.open = function(venom_device,zerosl_device){
   this.setDefaults();
   this.addControls();
 
-  this.preset.readFromFile("current_init.txt");
-  this.preset.setParameterHandler(this);
-  this.update_controls = 1;
-  //this.preset.sendParameters();
-  this.update_controls = 0;
 
   this.current_osc = 0; // Select the first oscillator as default
   this.zero.setControlValue('Osc1Sel',1.0,1);
@@ -63,6 +58,9 @@ MiniVenom.prototype.open = function(venom_device,zerosl_device){
   this.selected_slot = 1;
   this.showModControl();
   this.zero.setControlHandler(this);
+  console.log('Initialization done');
+
+  this.preset.readFromFile("current.txt",this);
 };
 
 MiniVenom.prototype.setDefaults = function()
@@ -79,10 +77,9 @@ MiniVenom.prototype.setDefaults = function()
   this.venom.setExtLevel(0); // not receiving external audio
   this.venom.setEnv1Hold(0); // not using hold in envelopes
   this.venom.setEnv2Hold(0);
-  this.venom.setVoiceUnisonOnOff(0);
   this.venom.setInsertFX(0); // bypass
-  this.venom.setAuxFX1Level(64); // no send 1
-  this.venom.setAuxFX2Level(64); // no send 2
+  this.venom.setAuxFX1Level(0); // no send 1
+  this.venom.setAuxFX2Level(0); // no send 2
   this.venom.setDirectLevel(0x7F); // max direct level
   this.venom.setLFO1Delay(0);  // basic LFO behavior
   this.venom.setLFO1Attack(0);
@@ -90,6 +87,29 @@ MiniVenom.prototype.setDefaults = function()
   this.venom.setLFO2Delay(0);
   this.venom.setLFO2Attack(0);
   this.venom.setLFO2Start(0);
+
+  this.venom.setVoiceTranspose(0x40);
+  this.venom.setVoiceTune(0x40);
+
+  this.venom.setVoiceUnisonVoices(4);
+  this.venom.setVoiceUnisonDetune(0x40);
+
+  this.venom.setMod1Amount(0x40);
+  this.venom.setMod2Amount(0x40);
+  this.venom.setMod3Amount(0x40);
+  this.venom.setMod4Amount(0x40);
+  this.venom.setMod5Amount(0x40);
+  this.venom.setMod6Amount(0x40);
+  this.venom.setMod7Amount(0x40);
+  this.venom.setMod8Amount(0x40);
+  this.venom.setMod9Amount(0x40);
+  this.venom.setMod10Amount(0x40);
+  this.venom.setMod11Amount(0x40);
+  this.venom.setMod12Amount(0x40);
+  this.venom.setMod13Amount(0x40);
+  this.venom.setMod14Amount(0x40);
+  this.venom.setMod15Amount(0x40);
+  this.venom.setMod16Amount(0x40);
 };
 
 MiniVenom.prototype.addControls =  function(){
@@ -118,7 +138,7 @@ MiniVenom.prototype.addControls =  function(){
   this.zero.addEncoderItems('Dest4',     ZeroPos.Encoders+7, ZeroPos.LeftLCD, 8, 0.5,  this.mod_dest);
   this.zero.addEncoderItems('Dest5',     ZeroPos.Encoders+7, ZeroPos.LeftLCD, 8, 0.5,  this.mod_dest);
   this.zero.addEncoderItems('Dest6',     ZeroPos.Encoders+7, ZeroPos.LeftLCD, 8, 0.5,  this.mod_dest);
-  this.zero.addKnobNumericInt('ModSlot',     ZeroPos.Knobs+7, ZeroPos.LeftLCD, 8, 1,  6);
+  this.zero.addKnobNumericInt('ModSlot', ZeroPos.Knobs+7, ZeroPos.LeftLCD, 8, 1,  16);
   this.zero.addCounterItems('FltType',ZeroPos.LeftUpButton+3,ZeroPos.LeftLCD,4,this.filter_types);
   // Envelopes
   this.zero.addEncoderNumeric('Env1Atck', ZeroPos.Encoders+3, ZeroPos.LeftLCD, 4, 0.5, 0.0, 1.0);
@@ -141,6 +161,7 @@ MiniVenom.prototype.addControls =  function(){
   this.zero.addEncoderItems('Osc2Wave', ZeroPos.Encoders+0, ZeroPos.LeftLCD, 1, 0.2, this.venom.WavesNoDrums);
   this.zero.addEncoderItems('Osc2Oct',  ZeroPos.Encoders+1, ZeroPos.LeftLCD, 2, 1.0, this.octaves);
   this.zero.addEncoderNumeric('Osc2Fine', ZeroPos.Encoders+2, ZeroPos.LeftLCD, 3, 0.5, -50.0, 50.0);
+  this.zero.addCounterItems('Unison',ZeroPos.LeftUpButton+1,ZeroPos.LeftLCD,2,['Off','On']);
   this.zero.addCounterItems('Voice',ZeroPos.LeftUpButton+2,ZeroPos.LeftLCD,3,this.voice_mode);
   this.zero.addToggleLed('Osc1Sel',ZeroPos.LeftDownButton+0);
   this.zero.addToggleLed('Osc2Sel',ZeroPos.LeftDownButton+1);
@@ -233,7 +254,6 @@ MiniVenom.prototype.showEnv12OrLFO = function()
 
 MiniVenom.prototype.handle = function(name,raw_value,value)
   {
-    //console.log('\''+name+'\'' , value);
     this.preset.setValue(name,raw_value,value);
     if(this.update_controls!==0){ // true when initializg from file
       this.zero.setControlValue(name,raw_value,value);
@@ -397,10 +417,16 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
       this.venom.setEnv2Release(value);
     }
 
+
     // Voice
     if(name=='Voice')
     {
       this.venom.setVoiceMonoPoly(value);
+    }
+
+    if(name=='Unison')
+    {
+      this.venom.setVoiceUnisonOnOff(value);
     }
 
     if(name=='Wave1'){
@@ -417,7 +443,7 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
     }
 
     if(name=='ModSlot'){
-      selected_slot = value;
+      this.selected_slot = value;
     }
 
     if(name=='ModSel'){
@@ -445,6 +471,36 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
     if(name=='Source6'){
       this.venom.setMod6Source(this.mod_sources_values[value]);
     }
+    if(name=='Source7'){
+      this.venom.setMod7Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source8'){
+      this.venom.setMod8Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source9'){
+      this.venom.setMod9Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source10'){
+      this.venom.setMod10Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source11'){
+      this.venom.setMod11Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source12'){
+      this.venom.setMod12Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source13'){
+      this.venom.setMod13Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source14'){
+      this.venom.setMod14Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source15'){
+      this.venom.setMod15Source(this.mod_sources_values[value]);
+    }
+    if(name=='Source16'){
+      this.venom.setMod16Source(this.mod_sources_values[value]);
+    }
 
     if(name=='Dest1'){
       this.venom.setMod1Destination(this.mod_dest_values[value]);
@@ -464,6 +520,36 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
     if(name=='Dest6'){
       this.venom.setMod6Destination(this.mod_dest_values[value]);
     }
+    if(name=='Dest7'){
+      this.venom.setMod7Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest8'){
+      this.venom.setMod8Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest9'){
+      this.venom.setMod9Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest10'){
+      this.venom.setMod10Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest11'){
+      this.venom.setMod11Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest12'){
+      this.venom.setMod12Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest13'){
+      this.venom.setMod13Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest14'){
+      this.venom.setMod14Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest15'){
+      this.venom.setMod15Destination(this.mod_dest_values[value]);
+    }
+    if(name=='Dest16'){
+      this.venom.setMod16Destination(this.mod_dest_values[value]);
+    }
 
     if(name=='Amount1'){
       this.venom.setMod1Amount(value);
@@ -482,6 +568,36 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
     }
     if(name=='Amount6'){
       this.venom.setMod6Amount(value);
+    }
+    if(name=='Amount7'){
+      this.venom.setMod7Amount(value);
+    }
+    if(name=='Amount8'){
+      this.venom.setMod8Amount(value);
+    }
+    if(name=='Amount9'){
+      this.venom.setMod9Amount(value);
+    }
+    if(name=='Amount10'){
+      this.venom.setMod10Amount(value);
+    }
+    if(name=='Amount11'){
+      this.venom.setMod11Amount(value);
+    }
+    if(name=='Amount12'){
+      this.venom.setMod12Amount(value);
+    }
+    if(name=='Amount13'){
+      this.venom.setMod13Amount(value);
+    }
+    if(name=='Amount14'){
+      this.venom.setMod14Amount(value);
+    }
+    if(name=='Amount15'){
+      this.venom.setMod15Amount(value);
+    }
+    if(name=='Amount16'){
+      this.venom.setMod16Amount(value);
     }
 
   };

@@ -262,7 +262,7 @@ MiniVenom.prototype.handle = function(name,raw_value,value)
     {
       this.venom.setOsc2Fine(value);
     }
-    if(name=='Mix 1-2')
+    if(name=='Mix 1x2')
     {
       var angle = raw_value * 3.1416 / 2.0;
       var v1 = Math.round(Math.cos(angle) * 127.0);
@@ -505,7 +505,7 @@ for (var i = 0; i < ports; i++) {
 
 var miniVenom = new MiniVenom();
 
-miniVenom.open('USB Uno MIDI Interface 24:0','ZeRO MkII 20:1');
+miniVenom.open('USB Uno MIDI Interface 16:0','ZeRO MkII 20:1');
 
 var o2 = new midi.input();
 
@@ -514,7 +514,7 @@ var ports = o2.getPortCount();
   var name = '';
   for (var i = 0; i < ports; i++) {
     name = o2.getPortName(i);
-    if(name.indexOf('ZeRO MkII 24:1')>-1){
+    if(name.indexOf('ZeRO MkII 20:0')>-1){
       o2.openPort(i);
       console.log('Opening input '+name);
       break;

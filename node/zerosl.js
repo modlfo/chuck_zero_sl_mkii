@@ -299,7 +299,6 @@ PushButton.prototype.constructor = PushButton;
 PushButton.prototype.handle = function(control,v) {
   if(control==this.cc_value){
     if(v===0){
-      if(this.int_value!==0){
         this.int_value = 0;
         this.raw_value = 0.0;
       }
@@ -310,7 +309,6 @@ PushButton.prototype.handle = function(control,v) {
       this.show();
       return 1;
     }
-  }
   return 0;
 };
 
